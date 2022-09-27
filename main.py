@@ -306,4 +306,4 @@ async def on_typing(channel, user, when):
         await asyncio.sleep(1.5)
         await msg.delete()
         
-bot.run('ODk3MzIxMTgzNzk0NTczMzcy.G_zo2y.zlptO2xa2hc-F07VPP1KKUFhjfryUbKYEty0K8')
+bot.run('token here')
