@@ -4,7 +4,6 @@ import re
 import requests
 import json
 import asyncio
-from replit import db
 from data import *
 
 def check_MS(msg):
@@ -19,15 +18,6 @@ def check_MS(msg):
         return True
     else:
         return False
-
-def create_new_user(id, name):
-    dict = {
-        'id': id,
-        'name': name, 
-        'total_secs': 0,
-        'join_time': None
-    }
-    db[id] = dict
 
 def fetch_member(id, members):
     for member in members:

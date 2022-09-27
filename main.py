@@ -1,30 +1,20 @@
 import asyncio
-import datetime
-import json
 import os
 import random
 import re
-import requests
 import time
 
 import discord
 
 from discord.ext import commands
-from replit import db
-from math import ceil
 
 from art import *
 from data import *
-from keep_alive import keep_alive
 from helper import *
 
 intents = discord.Intents.all()
 intents.members = True
 bot = commands.Bot(command_prefix='ms!', activity=discord.Game(name="ms!help"), intents=intents)
-
-# bot.lavalink_nodes = [
-#     {"host": "lavalinkinc.ml", "port": 443, "password": "incognito", "https": True}
-# ]
 
 @bot.event
 async def on_ready():
@@ -122,51 +112,6 @@ async def knock(ctx):
 async def ladbrokes(ctx):
     await ctx.send(dollar)
 
-@commands.cooldown(1, 60, commands.BucketType.guild)
-@bot.command(aliases=['lb'])
-async def leaderboard(ctx):
-    await ctx.send("RIP ms!lb")
-    # loading = await ctx.send("Leaderboard is loading...")
-    # members = []
-    # for key in db.keys():
-    #     members.append({
-    #         'id': key,
-    #         'name':db[key]['name'],
-    #         'secs': int(db[key]['total_secs'])
-    #     })
-    # sorted_members = sorted(members, key=lambda d: d['secs'], reverse=True)
-    # server = await bot.fetch_guild(server_id)
-    # all = "Season 1 - June 2022:\n```"
-    # mem_len = len(sorted_members)
-    # i = 0
-    # j = ceil(mem_len / 2)
-    # while i <= ceil((mem_len - 1) / 2):
-    #     if i == ceil((mem_len - 1) / 2) and mem_len % 2 == 0:
-    #         break
-    #     user = await server.fetch_member(sorted_members[i]['id'])
-    #     num = f'{i+1}.  ' if i+1 < 10 else f'{i+1}. '
-    #     str1 = f"{num}{user.display_name} {seconds_to_text(sorted_members[i]['secs'])}"
-    #     all = all + str1 + " " * (50 - len(str1))
-    #     if i != ceil((mem_len - 1) / 2):
-    #         user = await server.fetch_member(sorted_members[j]['id'])
-    #         str2 = f"{j+1}. {user.display_name} {seconds_to_text(sorted_members[j]['secs'])}"
-    #         all = all + str2 + "\n"
-    #     i += 1
-    #     j += 1
-
-    # all = all + "```"
-    # await ctx.message.delete()
-    # await loading.delete()
-    # bots_msg = await ctx.send(all)
-    # await asyncio.sleep(60)
-    # await bots_msg.delete()
-
-@leaderboard.error
-async def leaderboard_error(ctx, error):
-    if isinstance(error, commands.CommandOnCooldown):
-        msg = await ctx.send(f"ms!leaderboard is on CD for {error.retry_after:.2f}s.")
-        await asyncio.sleep(int(error.retry_after))
-        await msg.delete()
 
 @bot.command()
 async def medal(ctx, member: discord.Member=None, days=7):
@@ -308,18 +253,6 @@ async def snoopy(ctx):
     await ctx.send(snoopy_art)
 
 @bot.command()
-async def stats(ctx, member: discord.Member=None):
-    await ctx.send('no one used this command anyway lol')
-    # if member is None:
-    #     member = ctx.message.author
-    # id = str(member.id)
-    # try:
-    #     total_secs = int(db[id]['total_secs'])
-    #     await ctx.send(f"{member.mention} has spent {seconds_to_text(total_secs)} in discord!")
-    # except:
-    #      await ctx.send(f"{member.mention} has never joined discord <:baldWeirdchamp:597457217607696426>")
-
-@bot.command()
 async def timer(ctx):
     args = ctx.message.content[len(os.getenv('PREFIX')):].lower().split()
     if len(args) == 1:
@@ -365,49 +298,7 @@ async def on_voice_state_update(member, before, after):
         msg = await ch.send(f"{member.mention} Where are you going?")
         await asyncio.sleep(5)
         await msg.delete()
-    
-    # to do: swap 2 nicknames when someone joins/leave call
-    
-    # id = str(member.id)
-    # b_ch = before.channel
-    # a_ch = after.channel
-    # if b_ch is None:
-    #     if a_ch.guild.id != server_id:
-    #         return
-    #     if id not in db.keys():
-    #         create_new_user(id, member.name)
-    #     if after.self_mute is False:
-    #         db[id]['join_time'] = datetime.datetime.now().timestamp()  
-    #     return
-
-    # if a_ch is None:
-    #     if b_ch.guild.id != server_id:
-    #         return
-
-    #     ch = await bot.fetch_channel(660285290404904982)
-    #     msg = await ch.send(f"{member.mention} Where are you going?")
-    #     await asyncio.sleep(5)
-    #     await msg.delete()
-        
-    #     if db[id]['join_time'] is None:
-    #         return
-    #     db[id]['total_secs'] = db[id]['total_secs'] + datetime.datetime.now().timestamp() - db[id]['join_time']
-    #     db[id]['join_time'] = None
-        
-    #     return
-    
-    # # Everything below here assumes they ARE STILL IN VC, since if b_ch or a_ch is None then it will return
-
-    # # if they were unmuted then mute
-    # if before.self_mute is False and after.self_mute is True:
-    #     db[id]['total_secs'] = db[id]['total_secs'] + datetime.datetime.now().timestamp() - db[id]['join_time']
-    #     db[id]['join_time'] = None
-        
-    # # if they were muted then unmute        
-    # if before.self_mute is True and after.self_mute is False:
-    #     db[id]['join_time'] = datetime.datetime.now().timestamp()
-        
-
+       
 @bot.event
 async def on_typing(channel, user, when):
     if channel.guild.id == server_id:
@@ -415,5 +306,4 @@ async def on_typing(channel, user, when):
         await asyncio.sleep(1.5)
         await msg.delete()
         
-keep_alive()
-bot.run(os.getenv('TOKEN'))
+bot.run('ODk3MzIxMTgzNzk0NTczMzcy.G_zo2y.zlptO2xa2hc-F07VPP1KKUFhjfryUbKYEty0K8')
