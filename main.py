@@ -266,6 +266,11 @@ async def timer(ctx):
             await ctx.send("im not that retarded")
 
 @bot.command()
+async def val(ctx):
+    pass
+
+
+@bot.command()
 async def yt(ctx):
     await ctx.send("https://www.youtube.com/channel/UCEcv1n1cuUC4jdcrdy71S5Q")
 
@@ -295,7 +300,10 @@ async def on_voice_state_update(member, before, after):
 
     if after.channel is None:
         ch = await bot.fetch_channel(660285290404904982)
-        msg = await ch.send(f"{member.mention} Where are you going?")
+        if member.id == danny_id:
+            msg = await ch.send(f"{member.mention} shut up")
+        else:
+            msg = await ch.send(f"{member.mention} Where are you going?")
         await asyncio.sleep(5)
         await msg.delete()
        
