@@ -5,12 +5,11 @@ import re
 import time
 
 import discord
-
 from discord.ext import commands
 
-from art import *
-from data import *
-from helper import *
+import art
+import data
+import helper
 
 intents = discord.Intents.all()
 intents.members = True
@@ -34,11 +33,11 @@ async def template(ctx):
 bot.remove_command("help")
 @bot.command()
 async def help(ctx):
-    await ctx.send("Available commands: "+cmd_list)
+    await ctx.send("Available commands: "+data.cmd_list)
 
 @bot.command()
 async def arthur(ctx):
-    await ctx.send(get_aa_quote())
+    await ctx.send(helper.get_aa_quote())
 
 @bot.command()
 async def boom(ctx):
@@ -94,8 +93,8 @@ async def fivestars(ctx):
 
 @bot.command()
 async def gomu(ctx):
-    server = await bot.fetch_guild(server_id)
-    gomu = await server.fetch_member(gomu_id)
+    server = await bot.fetch_guild(data.server_id)
+    gomu = await server.fetch_member(data.gomu_id)
     
     if gomu.voice is None:
         msg = await ctx.send(f"How is your connection {gomu.mention}?")
@@ -105,11 +104,11 @@ async def gomu(ctx):
 
 @bot.command()
 async def hydra(ctx):
-    await ctx.send(hydra_art)
+    await ctx.send(art.hydra_art)
 
 @bot.command()
 async def inspire(ctx):
-    await ctx.send(get_quote())
+    await ctx.send(helper.get_quote())
 
 @bot.command()
 async def knock(ctx):
@@ -117,7 +116,7 @@ async def knock(ctx):
 
 @bot.command()
 async def ladbrokes(ctx):
-    await ctx.send(dollar)
+    await ctx.send(art.dollar)
 
 @bot.command()
 async def medal(ctx, member: discord.Member=None, days=7):
@@ -128,9 +127,9 @@ async def medal(ctx, member: discord.Member=None, days=7):
         await ctx.send("Please put a number")
     if days < 1:
         await ctx.send("Must be at least 1 day")
-    for dict in medal_list:
+    for dict in helper.medal_list:
         if dict['d_id'] == member.id:
-            clips = get_recent_clips(dict['m_id'], days)
+            clips = helper.get_recent_clips(dict['m_id'], days)
             embed = discord.Embed(
                 title = f"{len(clips)} Clips from {member.display_name} in the last {days} days:", 
                 colour = discord.Colour.orange()
@@ -150,9 +149,9 @@ async def recent_clips(ctx, days=7):
     if days < 1: await ctx.send("Must be at least 1 day"); return
     embed = discord.Embed(colour=discord.Colour.orange())
     clip_count = 0
-    for dict in medal_list:
+    for dict in helper.medal_list:
         clips_str = ""
-        for clip in get_recent_clips(dict['m_id'], days):
+        for clip in helper.get_recent_clips(dict['m_id'], days):
             clip_count += 1
             clips_str += f"{clip['contentTitle']}\n{clip['directClipUrl']}\n"
         if clips_str != "": embed.add_field(name=f"{dict['name']}'s clips:", value=clips_str, inline=False)
@@ -219,11 +218,12 @@ async def reset_nicknames(ctx):
         await msg.delete()
     else:
         if str(reaction.emoji) == '✅':
+            await msg.delete()
             for member in ctx.guild.members:
                 for role in member.roles:
                     if role.name == "Secretary" or role.name == "Vice Principal":
                         await member.edit(nick=None)
-    await msg.delete()
+    await ctx.send("All nicknames reset!")
 
 @commands.cooldown(1, 30, commands.BucketType.guild)
 @bot.command()
@@ -256,7 +256,7 @@ async def shuffle_error(ctx, error):
 
 @bot.command()
 async def snoopy(ctx):
-    await ctx.send(snoopy_art)
+    await ctx.send(art.snoopy_art)
 
 @bot.command()
 async def timer(ctx):
@@ -264,10 +264,10 @@ async def timer(ctx):
     if len(args) == 1:
         await ctx.send("How long? m:s or s")
     else:
-        timer = process_time(args[1])
+        timer = helper.process_time(args[1])
         if timer is not None:
-            await ctx.send(send_timer_msg(timer))
-            await do_timer(timer['total'], ctx, bot)
+            await ctx.send(helper.send_timer_msg(timer))
+            await helper.do_timer(timer['total'], ctx, bot)
         else:
             await ctx.send("im not that retarded")
 
@@ -283,7 +283,7 @@ async def yt(ctx):
 async def on_message(msg):
     if msg.author == bot.user:
         return
-    if check_MS(msg.content):
+    if helper.check_MS(msg.content):
         await msg.add_reaction("🇲")
         await msg.add_reaction("🇸")
         await msg.channel.send("MS")
@@ -311,11 +311,11 @@ async def on_voice_state_update(member, before, after):
     if msg is not None:
         await asyncio.sleep(5)
         await msg.delete()
-       
+
 @bot.event
 async def on_typing(channel, user, when):
-    if channel.guild.id == server_id:
-        msg = await channel.send(random.choice(typing_pic_links))
+    if channel.guild.id == helper.server_id:
+        msg = await channel.send(random.choice(helper.typing_pic_links))
         await asyncio.sleep(1.5)
         await msg.delete()
         

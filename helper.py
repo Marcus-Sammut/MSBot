@@ -4,7 +4,7 @@ import re
 import requests
 import json
 import asyncio
-from data import *
+import data
 
 def check_MS(msg):
     a = re.search("^[Mm][Ss] ", msg) # 'ms beast'
@@ -26,7 +26,7 @@ def fetch_member(id, members):
             return member
 
 def get_aa_quote():
-    quote = random.choice(arthur_quotes)
+    quote = random.choice(data.arthur_quotes)
     return "\"" + quote + "\"" + " - Arthur Ang"
 
 def get_quote():
@@ -80,7 +80,7 @@ def send_timer_msg(timer):
 
 async def do_timer(total, ctx, bot):
     await asyncio.sleep(total)
-    jeremy = await bot.fetch_user(jeremy_id)
+    jeremy = await bot.fetch_user(data.jeremy_id)
     await ctx.send(f"{ctx.message.author.mention} {jeremy.mention} should be back from his shower now!")
 
 def seconds_to_text(secs):
