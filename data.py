@@ -2,10 +2,16 @@ arthur_quotes = ["raw dog", "hamdulillah", "whats the play", "snap off", "so sic
 cmd_list = """```5stars arthur boom clean clips daddy darius dice dinner dopa gomu inspire knock ladbrokes leaderboard medal of oi opgg razza resetnames shuffle snoopy stats timer yt
 music: play pause resume stop seek queue skip loop np```
 """
+# typing_pic_links = [
+#     "https://cdn.discordapp.com/attachments/660285290404904982/976473374178029568/unknown.png",
+#     "https://cdn.discordapp.com/attachments/660285290404904982/999325411534192640/segan-removebg-preview_2.png",
+#     "https://cdn.discordapp.com/attachments/699292316267184248/1003605106354298901/kingstoned-removebg-preview.png"
+# ]
+
 typing_pic_links = [
-    "https://cdn.discordapp.com/attachments/660285290404904982/976473374178029568/unknown.png",
-    "https://cdn.discordapp.com/attachments/660285290404904982/999325411534192640/segan-removebg-preview_2.png",
-    "https://cdn.discordapp.com/attachments/699292316267184248/1003605106354298901/kingstoned-removebg-preview.png"
+    "https://lh3.googleusercontent.com/drive-viewer/AJc5JmRWUWPD4XE2WdNIYiIOZk4xmoY5f7VfJWzKmqKNevmR2y_dbdTGp3A89mP5WdQJlf4IIIVcfjw=w1920-h880",
+    "https://lh3.googleusercontent.com/drive-viewer/AJc5JmTu0qERPtgHKeP0oy7i3iuuSeddtpPvg2ogLD47kgO9PZP-ZeusTYZ-nURI2CF5IK8Tdx8Avtg=w1920-h880",
+    "https://lh3.googleusercontent.com/drive-viewer/AJc5JmRLlDfVt-1sVO60Qc-T1QNZbutzA8YxVQebXZ6hGH6aP2F8CD3lSlPP7CLaBfxMqX5yvvPJ_vo=w1920-h880"
 ]
 server_id = 391945575886618626
 jeremy_id = 391939457173159936

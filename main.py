@@ -19,6 +19,13 @@ bot = commands.Bot(command_prefix='ms!', activity=discord.Game(name="ms!help"), 
 @bot.event
 async def on_ready():
     print('======================\n{0.user} is online!\n======================'.format(bot))
+    global general
+    general = await bot.fetch_channel(660285290404904982)
+    while True:
+        await asyncio.sleep(60)
+        now = time.localtime()
+        if now.tm_hour == 20 and now.tm_min == 00:
+            await general.send("Do your daily vote: https://www.webnovel.com/book/civilization_21272045006019305#:~:text=Weekly%20Power%20Status")
 
 @bot.command()
 async def template(ctx):
@@ -112,7 +119,6 @@ async def knock(ctx):
 async def ladbrokes(ctx):
     await ctx.send(dollar)
 
-
 @bot.command()
 async def medal(ctx, member: discord.Member=None, days=7):
     if member is None:
@@ -167,8 +173,9 @@ async def oi(ctx, member: discord.Member=None):
     if member.voice is None:
         return
     initial_ch = member.voice.channel
-    vc_list = ctx.message.guild.voice_channels
-    vc_list.remove(initial_ch)
+    _vcs = ctx.message.guild.voice_channels
+    _vcs.remove(initial_ch)
+    vc_list = [vc for vc in _vcs if vc.name != 'Mary Juan']
     prev = None
     for i in range(7):
         curr = random.choice(vc_list)
@@ -187,12 +194,11 @@ async def oi_error(ctx, error):
         await msg.delete()
 
 @bot.command()
-async def opgg(ctx):
-    args = ctx.message.content[len(os.getenv('PREFIX')):].lower().split()
-    if len(args) == 1:
+async def opgg(ctx, name: None):
+    if name is None:
         await ctx.send("put someones league name")
     else:
-        await ctx.send(f"https://oce.op.gg/summoners/oce/{args[1]}")
+        await ctx.send(f"https://oce.op.gg/summoners/oce/{name}")
 
 @bot.command()
 async def razza(ctx):
@@ -269,7 +275,6 @@ async def timer(ctx):
 async def val(ctx):
     pass
 
-
 @bot.command()
 async def yt(ctx):
     await ctx.send("https://www.youtube.com/channel/UCEcv1n1cuUC4jdcrdy71S5Q")
@@ -297,13 +302,13 @@ async def on_message(msg):
 
 @bot.event
 async def on_voice_state_update(member, before, after):
-
-    if after.channel is None:
-        ch = await bot.fetch_channel(660285290404904982)
-        if member.id == danny_id:
-            msg = await ch.send(f"{member.mention} shut up")
-        else:
-            msg = await ch.send(f"{member.mention} Where are you going?")
+    name = member.nick if member.nick != None else member.name
+    msg = None
+    if before.channel is None:
+        msg = await general.send(f"Hi {name}")
+    elif after.channel is None:
+        msg = await general.send(f"{name} Where are you going?")
+    if msg is not None:
         await asyncio.sleep(5)
         await msg.delete()
        
@@ -314,4 +319,4 @@ async def on_typing(channel, user, when):
         await asyncio.sleep(1.5)
         await msg.delete()
         
-bot.run('token here')
+bot.run('ODk3MzIxMTgzNzk0NTczMzcy.GxAB2F.YA_NRoSGIbhhIrPHRLx6ul7-qLjqBin4K2tbUs')
