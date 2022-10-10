@@ -1,0 +1,8 @@
+MS Bot Patch Notes 10.10:
+Hi all MS Bot fans, its MS here the developer of the MS Bot with a new QoL updates to stop pissing off danny when he checks discord on his phone!
+
+Fuck off segan: Segan and Gomu's face is no longer gigantic
+
+Shut up: MSBot no longer pings you directly when you leave a voice channel
+
+Who just joined?: MSBot now temporarily leaves a message that shows who just joined a voice channel

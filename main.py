@@ -200,6 +200,12 @@ async def opgg(ctx, name: None):
         await ctx.send(f"https://oce.op.gg/summoners/oce/{name}")
 
 @bot.command()
+async def patchnotes(ctx):
+    with open('patchnotes.txt', 'r') as notes:
+        await ctx.send(notes.read())
+
+
+@bot.command()
 async def razza(ctx):
     await ctx.send("https://clips.twitch.tv/TenuousCarelessAnacondaMingLee")
 
