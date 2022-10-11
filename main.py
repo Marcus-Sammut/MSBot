@@ -127,7 +127,7 @@ async def medal(ctx, member: discord.Member=None, days=7):
         await ctx.send("Please put a number")
     if days < 1:
         await ctx.send("Must be at least 1 day")
-    for dict in helper.medal_list:
+    for dict in data.medal_list:
         if dict['d_id'] == member.id:
             clips = helper.get_recent_clips(dict['m_id'], days)
             embed = discord.Embed(
@@ -143,13 +143,17 @@ async def medal(ctx, member: discord.Member=None, days=7):
             return
     await ctx.send(f"<:ResidentChriser:944865466424393738> {member.mention} has no clips <:ResidentChriser:944865466424393738>")
 
+@bot.command()
+async def multis(ctx):
+    pass       
+
 @bot.command(aliases=['clips'])
 async def recent_clips(ctx, days=7):
     if type(days) != int: await ctx.send("Please put a number"); return
     if days < 1: await ctx.send("Must be at least 1 day"); return
     embed = discord.Embed(colour=discord.Colour.orange())
     clip_count = 0
-    for dict in helper.medal_list:
+    for dict in data.medal_list:
         clips_str = ""
         for clip in helper.get_recent_clips(dict['m_id'], days):
             clip_count += 1
@@ -265,6 +269,10 @@ async def snoopy(ctx):
     await ctx.send(art.snoopy_art)
 
 @bot.command()
+async def sro(ctx):
+    await ctx.send(file=discord.File('bwu.mp3'))
+
+@bot.command()
 async def timer(ctx):
     args = ctx.message.content[len(os.getenv('PREFIX')):].lower().split()
     if len(args) == 1:
@@ -320,8 +328,8 @@ async def on_voice_state_update(member, before, after):
 
 @bot.event
 async def on_typing(channel, user, when):
-    if channel.guild.id == helper.server_id:
-        msg = await channel.send(random.choice(helper.typing_pic_links))
+    if channel.guild.id == data.server_id:
+        msg = await channel.send(random.choice(data.typing_pic_links))
         await asyncio.sleep(1.5)
         await msg.delete()
         
