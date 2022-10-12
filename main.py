@@ -2,6 +2,7 @@ import asyncio
 import os
 import random
 import re
+import sys
 import time
 
 import discord
@@ -338,4 +339,4 @@ async def on_typing(channel, user, when):
         await asyncio.sleep(1.5)
         await msg.delete()
         
-bot.run('ODk3MzIxMTgzNzk0NTczMzcy.Gwlm48.cDWWLE9iwtifT_Ti-bn2NB8iIHNBzZ9D-ZDaF8')
+bot.run(sys.argv[1])
