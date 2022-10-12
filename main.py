@@ -93,6 +93,10 @@ async def fivestars(ctx):
     await ctx.send("https://www.suzuki.com.au/vehicles/hatch/swift")
 
 @bot.command()
+async def github(ctx):
+    await ctx.send("https://github.com/Marcus-Sammut/MSBot")
+
+@bot.command()
 async def gomu(ctx):
     server = await bot.fetch_guild(data.server_id)
     gomu = await server.fetch_member(data.gomu_id)
