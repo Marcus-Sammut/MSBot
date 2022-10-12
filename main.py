@@ -146,7 +146,8 @@ async def medal(ctx, member: discord.Member=None, days=7):
 
 @bot.command()
 async def multis(ctx):
-    pass       
+    
+    pass
 
 @bot.command(aliases=['clips'])
 async def recent_clips(ctx, days=7):
