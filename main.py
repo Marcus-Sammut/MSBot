@@ -135,7 +135,8 @@ async def medal(ctx, member: discord.Member=None, days=7):
                 colour = discord.Colour.orange()
             )
             for clip in clips:
-                embed.add_field(name=clip['contentTitle'], value=clip['directClipUrl'], inline=False)
+                game_name = helper.get_game_name(int(clip['categoryId']))
+                embed.add_field(name=f"{clip['contentTitle']} {game_name}", value=clip['directClipUrl'], inline=False)
             if not clips:
                 await ctx.send(f"<:ResidentChriser:944865466424393738> {member.mention} has no recent clips <:ResidentChriser:944865466424393738>")
             else:
@@ -157,7 +158,8 @@ async def recent_clips(ctx, days=7):
         clips_str = ""
         for clip in helper.get_recent_clips(dict['m_id'], days):
             clip_count += 1
-            clips_str += f"{clip['contentTitle']}\n{clip['directClipUrl']}\n"
+            game_name = helper.get_game_name(int(clip['categoryId']))
+            clips_str += f"{clip['contentTitle']} {game_name}\n{clip['directClipUrl']}\n"
         if clips_str != "": embed.add_field(name=f"{dict['name']}'s clips:", value=clips_str, inline=False)
     if clip_count == 0: await ctx.send(f"<:ResidentChriser:944865466424393738> No recent clips in the last {days} days <:ResidentChriser:944865466424393738>"); return
     embed.title = f"{clip_count} Clips from the last {days} days:"
@@ -271,6 +273,8 @@ async def snoopy(ctx):
 @bot.command()
 async def sro(ctx):
     await ctx.send(file=discord.File('bwu.mp3'))
+    #TODO
+    # tts cmd where msbot joins the discord and says the tts and leaves
 
 @bot.command()
 async def timer(ctx):

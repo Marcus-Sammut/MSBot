@@ -34,6 +34,16 @@ def get_quote():
     json_data = json.loads(response.text)
     return json_data[0]['q'] + " - " + json_data[0]['a']
 
+def get_game_name(category_id):
+    """get id from category dict"""
+    with open('medal_categories.txt', 'r', encoding='utf8') as data:
+        category_dict = json.loads(data.read())
+    found = False
+    for category in category_dict:
+        if category['id'] == category_id:
+            return f"({category['name']})"
+    return ''
+
 def get_recent_clips(id, days):
     header = {"Authorization":"pub_qBFrFBCfU0SErmP9hChALNXeQnyekLik"}
     response = requests.get(f"https://developers.medal.tv/v1/latest?userId={id}&limit=100", headers=header)
