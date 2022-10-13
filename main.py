@@ -150,11 +150,16 @@ async def medal(ctx, member: discord.Member=None, days=7):
     await ctx.send(f"<:ResidentChriser:944865466424393738> {member.mention} has no clips <:ResidentChriser:944865466424393738>")
 
 @bot.command()
+async def millionaire(ctx):
+    await ctx.send("soon:tm:")
+
+@bot.command()
 async def multi(ctx):
     msgs = []
     for multi in os.listdir('./multis'):
         msg = await ctx.send(multi,file=discord.File(f'./multis/{multi}'))
         msgs.append(msg)
+    await ctx.message.delete()
     await asyncio.sleep(120)
     await ctx.channel.delete_messages(msgs)
 
