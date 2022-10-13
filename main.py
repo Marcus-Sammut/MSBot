@@ -1,3 +1,4 @@
+"""implements all commands and features of MSBot"""
 import asyncio
 import os
 import random
@@ -13,13 +14,12 @@ import data
 import helper
 
 intents = discord.Intents.all()
-intents.members = True
+#intents.members = True
 bot = commands.Bot(command_prefix='ms!', activity=discord.Game(name="ms!help"), intents=intents)
 
 @bot.event
 async def on_ready():
     print('======================\n{0.user} is online!\n======================'.format(bot))
-    global general
     general = await bot.fetch_channel(660285290404904982)
     while True:
         await asyncio.sleep(60)
@@ -57,9 +57,9 @@ async def clean(ctx):
                 msg.author.id == 980918916211695717 or # valorant shop
                 msg.author.id == 614109280508968980 or #chip bot
                 msg.author.id == 210363111729790977): #duncte
-                    not_deleted = True
-                    counter += 1
-                    to_del.append(msg)
+                not_deleted = True
+                counter += 1
+                to_del.append(msg)
         await ctx.channel.delete_messages(to_del)
         to_del.clear()
     msg = await ctx.send(f"{counter} messages cleaned up")
@@ -150,9 +150,13 @@ async def medal(ctx, member: discord.Member=None, days=7):
     await ctx.send(f"<:ResidentChriser:944865466424393738> {member.mention} has no clips <:ResidentChriser:944865466424393738>")
 
 @bot.command()
-async def multis(ctx):
-    
-    pass
+async def multi(ctx):
+    msgs = []
+    for multi in os.listdir('./multis'):
+        msg = await ctx.send(multi,file=discord.File(f'./multis/{multi}'))
+        msgs.append(msg)
+    await asyncio.sleep(120)
+    await ctx.channel.delete_messages(msgs)
 
 @bot.command(aliases=['clips'])
 async def recent_clips(ctx, days=7):
@@ -328,6 +332,7 @@ async def on_message(msg):
 async def on_voice_state_update(member, before, after):
     name = member.nick if member.nick != None else member.name
     msg = None
+    general = await bot.fetch_channel(660285290404904982)
     if before.channel is None:
         msg = await general.send(f"Hi {name}")
     elif after.channel is None:

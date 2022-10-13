@@ -1,5 +1,5 @@
 arthur_quotes = ["raw dog", "hamdulillah", "whats the play", "snap off", "so sick", "cheesily so soft", "why you repping", "so cooked", "packing heat", "flop it out", "so solid", "force", "so raw", "sus it out", "thoughts?", "you like that cleanse?"]
-cmd_list = """```5stars arthur boom clean clips daddy darius dice dinner dopa github gomu inspire knock ladbrokes leaderboard medal of oi opgg patchnotes razza resetnames shuffle snoopy sro stats timer yt
+cmd_list = """```5stars arthur boom clean clips daddy darius dice dinner dopa github gomu inspire knock ladbrokes leaderboard medal multi of oi opgg patchnotes razza resetnames shuffle snoopy sro stats timer yt
 music: play pause resume stop seek queue skip loop np```
 """
 # typing_pic_links = [
