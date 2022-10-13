@@ -1,6 +1,13 @@
 MS Bot Patch Notes
+13.10:
+$$$$$$: added ms!multi and ms!millionaire
+
 12.10:
 Undescriptive titles: ms!medal and ms!clips now shows the game name next to the clip title
+Resume: Added ms!github
+
+11.10:
+BOOM: Added BWUSROHBAIAWSMLOLA
 
 10.10:
 Hi all MS Bot fans, its MS here the developer of the MS Bot with a new QoL update to stop pissing off danny when he checks discord on his phone!
