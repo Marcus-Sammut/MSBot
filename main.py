@@ -293,7 +293,7 @@ async def sro(ctx):
 
 @bot.command()
 async def timer(ctx):
-    args = ctx.message.content[len(os.getenv('PREFIX')):].lower().split()
+    args = ctx.message.content[3:].lower().split()
     if len(args) == 1:
         await ctx.send("How long? m:s or s")
     else:
