@@ -21,11 +21,15 @@ bot = commands.Bot(command_prefix='ms!', activity=discord.Game(name="ms!help"), 
 async def on_ready():
     print('======================\n{0.user} is online!\n======================'.format(bot))
     general = await bot.fetch_channel(660285290404904982)
+    
+    # KP webnovel 8pm notification/reminder/announcement
     while True:
-        await asyncio.sleep(60)
         now = time.localtime()
         if now.tm_hour == 20 and now.tm_min == 00:
             await general.send("Do your daily vote: https://www.webnovel.com/book/civilization_21272045006019305#:~:text=Weekly%20Power%20Status")
+            await asyncio.sleep(120)
+        else:
+            await asyncio.sleep(30)
 
 @bot.command()
 async def template(ctx):
