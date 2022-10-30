@@ -119,6 +119,12 @@ async def hydra(ctx):
 async def inspire(ctx):
     await ctx.send(helper.get_quote())
 
+@bot.command(aliases=helper.jordan_list())
+async def JORDAN(ctx):
+    await ctx.message.add_reaction("🇯🇴")
+    msg = await ctx.send("https://medal.tv/games/league-of-legends/clips/jaFyE1FuJs1HX")
+    await msg.add_reaction("🇯🇴")
+
 @bot.command()
 async def knock(ctx):
     await ctx.send("https://media.discordapp.net/attachments/660285290404904982/980466548911251526/ezgif-2-2e7fb41497.gif")
@@ -320,6 +326,8 @@ async def yt(ctx):
 async def on_message(msg):
     if msg.author == bot.user:
         return
+    if msg.author.id == data.gomu_id:
+        await msg.add_reaction("<:chonkstone:811979419571847239>")
     if helper.check_MS(msg.content):
         await msg.add_reaction("🇲")
         await msg.add_reaction("🇸")

@@ -55,7 +55,13 @@ def get_recent_clips(id, days):
         if post_time < (86400 * days):
             recent_clips.append(data)
     return recent_clips
-            
+
+def jordan_list():
+    jordans = []
+    for i in range(2,101):
+        jordans.append("J" + "O" * i + "RDAN")
+    return jordans
+
 def process_time(time):
     timer = {
         'm': 0,
