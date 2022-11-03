@@ -355,7 +355,7 @@ async def on_voice_state_update(member, before, after):
     elif after.channel is None:
         msg = await general.send(f"{name} Where are you going?")
     if msg is not None:
-        await asyncio.sleep(5)
+        await asyncio.sleep(15)
         await msg.delete()
 
 @bot.event
