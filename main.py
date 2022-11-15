@@ -21,7 +21,23 @@ bot = commands.Bot(command_prefix='ms!', activity=discord.Game(name="ms!help"), 
 @bot.event
 async def on_ready():
     daily_announcements.start()
+    jordan_water.start()
     print('======================\n{0.user} is online!\n======================'.format(bot))
+
+@tasks.loop(minutes=20)
+async def jordan_water():
+    jordan_water.change_interval(minutes=random.choice(range(20, 180)))
+
+    now = time.localtime()
+    if now.tm_hour not in [14,15,16,17,18,19,20,21]:
+        general = await bot.fetch_channel(660285290404904982)
+        server = await bot.fetch_guild(data.server_id)
+        jordan = await server.fetch_member(data.jordan_id)
+
+        if str(jordan.status) != "offline":
+            msg = await general.send(f"{jordan.mention} This is a reminder to drink water and stay hydrated! ")
+            await msg.add_reaction("<:thatface:1041254412821221406>")
+
 
 @tasks.loop(time=datetime.time(9,0)) # time is in UTC, AEST +10, AEDT + 11, -11hrs to convert to UTC
 async def daily_announcements():
@@ -103,7 +119,7 @@ async def gomu(ctx):
     gomu = await server.fetch_member(data.gomu_id)
     
     if gomu.voice is None:
-        msg = await ctx.send(f"How is your connection {gomu.mention}?")
+        msg = await ctx.send(f"fuck you {gomu.mention}?")
         await msg.add_reaction("<:chonkstone:811979419571847239>")
     else:
         await gomu.move_to(None)
