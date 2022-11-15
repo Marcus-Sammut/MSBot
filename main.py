@@ -1,5 +1,6 @@
 """implements all commands and features of MSBot"""
 import asyncio
+import datetime
 import os
 import random
 import re
@@ -7,7 +8,7 @@ import sys
 import time
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 import art
 import data
@@ -19,17 +20,13 @@ bot = commands.Bot(command_prefix='ms!', activity=discord.Game(name="ms!help"), 
 
 @bot.event
 async def on_ready():
+    daily_announcements.start()
     print('======================\n{0.user} is online!\n======================'.format(bot))
+
+@tasks.loop(time=datetime.time(9,0)) # time is in UTC, AEST +10, AEDT + 11, -11hrs to convert to UTC
+async def daily_announcements():
     general = await bot.fetch_channel(660285290404904982)
-    
-    # KP webnovel 8pm notification/reminder/announcement
-    while True:
-        now = time.localtime()
-        if now.tm_hour == 20 and now.tm_min == 00:
-            await general.send("Do your daily vote: https://www.webnovel.com/book/civilization_21272045006019305#:~:text=Weekly%20Power%20Status")
-            await asyncio.sleep(120)
-        else:
-            await asyncio.sleep(30)
+    await general.send("Do your daily vote: https://www.webnovel.com/book/civilization_21272045006019305#:~:text=Weekly%20Power%20Status")
 
 @bot.command()
 async def template(ctx):
@@ -235,7 +232,6 @@ async def patchnotes(ctx):
     with open('patchnotes.txt', 'r') as notes:
         await ctx.send(notes.read())
 
-
 @bot.command()
 async def razza(ctx):
     await ctx.send("https://clips.twitch.tv/TenuousCarelessAnacondaMingLee")
@@ -299,7 +295,7 @@ async def snoopy(ctx):
 async def sro(ctx):
     await ctx.send(file=discord.File('bwu.mp3'))
     #TODO
-    # tts cmd where msbot joins the discord and says the tts and leaves
+    # tts cmd where msbot joins the discord and says the tts and leaves+----+-+++
 
 @bot.command()
 async def timer(ctx):
@@ -360,9 +356,10 @@ async def on_voice_state_update(member, before, after):
 
 @bot.event
 async def on_typing(channel, user, when):
+    print("typinbgf")
     if channel.guild.id == data.server_id:
         msg = await channel.send(random.choice(data.typing_pic_links))
         await asyncio.sleep(1.5)
         await msg.delete()
-        
+
 bot.run(sys.argv[1])
