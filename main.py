@@ -15,8 +15,9 @@ import data
 import helper
 
 intents = discord.Intents.all()
-#intents.members = True
-bot = commands.Bot(command_prefix='ms!', activity=discord.Game(name="ms!help"), intents=intents)
+intents.presences = True
+intents.members = True
+bot = commands.Bot(command_prefix='ms!', status=discord.Status.dnd, activity=discord.Game(name="ms!help"), intents=intents)
 
 @bot.event
 async def on_ready():
@@ -24,20 +25,14 @@ async def on_ready():
     jordan_water.start()
     print('======================\n{0.user} is online!\n======================'.format(bot))
 
-@tasks.loop(minutes=20)
+@tasks.loop(minutes=15)
 async def jordan_water():
-    jordan_water.change_interval(minutes=random.choice(range(20, 180)))
-
-    now = time.localtime()
-    if now.tm_hour not in [14,15,16,17,18,19,20,21]:
-        general = await bot.fetch_channel(660285290404904982)
-        server = await bot.fetch_guild(data.server_id)
-        jordan = await server.fetch_member(data.jordan_id)
-
-        if str(jordan.status) != "offline":
-            msg = await general.send(f"{jordan.mention} This is a reminder to drink water and stay hydrated! ")
-            await msg.add_reaction("<:thatface:1041254412821221406>")
-
+    jordan_water.change_interval(minutes=random.choice(range(15, 150)))
+    general = await bot.fetch_channel(660285290404904982)
+    server = bot.get_guild(data.server_id)
+    jordan = server.get_member(data.jordan_id)
+    if jordan.status == discord.Status.online:
+        msg = await general.send(f"{jordan.mention} This is a reminder to drink water and stay hydrated! ")
 
 @tasks.loop(time=datetime.time(9,0)) # time is in UTC, AEST +10, AEDT + 11, -11hrs to convert to UTC
 async def daily_announcements():
@@ -372,7 +367,6 @@ async def on_voice_state_update(member, before, after):
 
 @bot.event
 async def on_typing(channel, user, when):
-    print("typinbgf")
     if channel.guild.id == data.server_id:
         msg = await channel.send(random.choice(data.typing_pic_links))
         await asyncio.sleep(1.5)
