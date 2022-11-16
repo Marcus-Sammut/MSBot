@@ -372,4 +372,16 @@ async def on_typing(channel, user, when):
         await asyncio.sleep(1.5)
         await msg.delete()
 
+@bot.event
+async def on_presence_update(before, after):
+    if after.id == data.MS_id and before.status == discord.Status.offline:
+        start_str = f"{after.mention} JOOOOO"
+        general = await bot.fetch_channel(660285290404904982)
+        msg = await general.send(start_str)
+        for _ in range(10):
+            start_str += "OOOOOO"
+            await msg.edit(content=start_str)
+            await asyncio.sleep(1.5)
+        await msg.edit(content=start_str+"RDAN")
+
 bot.run(sys.argv[1])
