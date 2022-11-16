@@ -374,7 +374,7 @@ async def on_typing(channel, user, when):
 
 @bot.event
 async def on_presence_update(before, after):
-    if after.id == data.MS_id and before.status == discord.Status.offline:
+    if after.id == data.jordan_id and before.status == discord.Status.offline:
         start_str = f"{after.mention} JOOOOO"
         general = await bot.fetch_channel(660285290404904982)
         msg = await general.send(start_str)
