@@ -232,6 +232,17 @@ async def oi_error(ctx, error):
         await msg.delete()
 
 @bot.command()
+async def ooo(ctx):
+    start_str = "JOOOOO"
+    general = await bot.fetch_channel(660285290404904982)
+    msg = await general.send(start_str)
+    for _ in range(10):
+        start_str += "OOOOOO"
+        await msg.edit(content=start_str)
+        await asyncio.sleep(1.5)
+    await msg.edit(content=start_str+"RDAN")
+
+@bot.command()
 async def opgg(ctx, name: None):
     if name is None:
         await ctx.send("put someones league name")
