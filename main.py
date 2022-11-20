@@ -354,13 +354,13 @@ async def on_message(msg):
         await msg.channel.send("JAYNISS")
     msg_split = msg.content.split()
     for word in msg_split:
-        if re.search("beast", msg.content, re.IGNORECASE):
+        if re.search("beast", word, re.IGNORECASE):
             await msg.add_reaction("🦍")
-        elif re.search("boom", msg.content, re.IGNORECASE):
+        elif re.search("boom", word, re.IGNORECASE):
             await msg.add_reaction("💥")
-        elif re.search("holy", msg.content, re.IGNORECASE):
+        elif re.search("holy", word, re.IGNORECASE):
             await msg.add_reaction("⛪")
-        elif re.search("<@423369088681902080>", msg.content, re.IGNORECASE):
+        elif re.search("<@423369088681902080>", word, re.IGNORECASE):
             await msg.add_reaction("<:chonkstone:811979419571847239>")
 
     await bot.process_commands(msg)
@@ -387,14 +387,19 @@ async def on_typing(channel, user, when):
 
 @bot.event
 async def on_presence_update(before, after):
-    if after.id == data.jordan_id and before.status == discord.Status.offline:
-        start_str = f"{after.mention} JOOOOO"
+    if (after.id == data.jordan_id or after.id == data.colden_id) and before.status == discord.Status.offline:
+        if after.id == data.jordan_id:
+            start_str = f"{after.mention} JOOOOO"
+            name_end = "RDAN"
+        else:
+            start_str = f"{after.mention} COOOOO"
+            name_end = "LDEN"
         general = await bot.fetch_channel(660285290404904982)
         msg = await general.send(start_str)
         for _ in range(10):
             start_str += "OOOOOO"
             await msg.edit(content=start_str)
             await asyncio.sleep(1.5)
-        await msg.edit(content=start_str+"RDAN")
+        await msg.edit(content=start_str+name_end)
 
 bot.run(sys.argv[1])
