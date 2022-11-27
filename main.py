@@ -350,18 +350,21 @@ async def on_message(msg):
         await msg.add_reaction("🇲")
         await msg.add_reaction("🇸")
         await msg.channel.send("MS")
+    if re.search(r'\bval\b',msg.content, re.IGNORECASE):
+        await msg.reply("💀💀💀💀💀💀💀", mention_author=False)
     if re.search("^HUGH$",msg.content):
         await msg.channel.send("JAYNISS")
-    msg_split = msg.content.split()
-    for word in msg_split:
-        if re.search("beast", word, re.IGNORECASE):
-            await msg.add_reaction("🦍")
-        elif re.search("boom", word, re.IGNORECASE):
-            await msg.add_reaction("💥")
-        elif re.search("holy", word, re.IGNORECASE):
-            await msg.add_reaction("⛪")
-        elif re.search("<@423369088681902080>", word, re.IGNORECASE):
-            await msg.add_reaction("<:chonkstone:811979419571847239>")
+    else:
+        msg_split = msg.content.split()
+        for word in msg_split:
+            if re.search("beast", word, re.IGNORECASE):
+                await msg.add_reaction("🦍")
+            elif re.search("boom", word, re.IGNORECASE):
+                await msg.add_reaction("💥")
+            elif re.search("holy", word, re.IGNORECASE):
+                await msg.add_reaction("⛪")
+            elif re.search("<@423369088681902080>", word, re.IGNORECASE):
+                await msg.add_reaction("<:chonkstone:811979419571847239>")
 
     await bot.process_commands(msg)
 
