@@ -350,8 +350,8 @@ async def on_message(msg):
         await msg.add_reaction("🇲")
         await msg.add_reaction("🇸")
         await msg.channel.send("MS")
-    if re.search(r'\bval\b',msg.content, re.IGNORECASE):
-        await msg.reply("💀💀💀💀💀💀💀", mention_author=False)
+    if val_count := len(re.findall(r'\bval\b',msg.content, re.IGNORECASE)):
+        await msg.reply("💀💀💀💀💀💀💀\n"*val_count, mention_author=False)
     if re.search("^HUGH$",msg.content):
         await msg.channel.send("JAYNISS")
     else:
