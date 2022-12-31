@@ -2,6 +2,7 @@
 import asyncio
 import datetime
 import os
+import pathlib
 import random
 import re
 import sys
@@ -140,6 +141,10 @@ async def knock(ctx):
 @bot.command()
 async def ladbrokes(ctx):
     await ctx.send(art.dollar)
+
+@bot.command()
+async def log(ctx):
+    await ctx.send(pathlib.Path('voice_log.txt').read_text().strip())
 
 @bot.command()
 async def medal(ctx, member: discord.Member=None, days=7):
@@ -375,8 +380,10 @@ async def on_voice_state_update(member, before, after):
     general = await bot.fetch_channel(660285290404904982)
     if before.channel is None:
         msg = await general.send(f"Hi {name}")
+        helper.append_voice_log(name, 'joined')
     elif after.channel is None:
         msg = await general.send(f"{name} Where are you going?")
+        helper.append_voice_log(name, 'left')
     if msg is not None:
         await asyncio.sleep(15)
         await msg.delete()

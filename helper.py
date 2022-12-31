@@ -1,10 +1,29 @@
 import datetime
+import time
 import random
 import re
 import requests
 import json
 import asyncio
 import data
+
+def append_voice_log(name, status):
+    curr_time = time.strftime("%I:%M%p", time.localtime()).lower()
+    if curr_time[0] == '0':
+        curr_time = curr_time[1:]
+    with open('voice_log.txt', 'r+') as f:
+        logs = f.readlines()
+        if len(logs) > 20:
+            logs.pop(0)
+        if status == 'joined':
+            logs.append(f"{name} joined at {curr_time}\n")
+        elif status == 'left':
+            logs.append(f"{name} left at {curr_time}\n")
+
+        # write to file
+        f.seek(0)
+        f.truncate()
+        f.writelines(logs)
 
 def check_MS(msg):
     a = re.search("^[Mm][Ss] ", msg) # 'ms beast'
