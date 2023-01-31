@@ -22,8 +22,8 @@ bot = commands.Bot(command_prefix='ms!', status=discord.Status.dnd, activity=dis
 
 @bot.event
 async def on_ready():
-    daily_announcements.start()
-    jordan_water.start()
+    # daily_announcements.start()
+    # jordan_water.start()
     print('======================\n{0.user} is online!\n======================'.format(bot))
 
 @tasks.loop(minutes=15)
@@ -68,8 +68,8 @@ async def clean(ctx):
             if (msg.content.startswith(("ms!","Ms!","mS!","MS!","db!","Db!","dB!","DB!","-p")) or
                 msg.author.id == 897321183794573372 or # Ms bot
                 msg.author.id == 980918916211695717 or # valorant shop
-                msg.author.id == 614109280508968980 or #chip bot
-                msg.author.id == 210363111729790977): #duncte
+                msg.author.id == 614109280508968980 or # chip bot
+                msg.author.id == 210363111729790977):  # duncte
                 not_deleted = True
                 counter += 1
                 to_del.append(msg)
@@ -379,9 +379,11 @@ async def on_voice_state_update(member, before, after):
     msg = None
     general = await bot.fetch_channel(660285290404904982)
     if before.channel is None:
+        if after.channel.guild.id != data.server_id: return
         msg = await general.send(f"Hi {name}")
         helper.append_voice_log(name, 'joined')
     elif after.channel is None:
+        if before.channel.guild.id != data.server_id: return
         msg = await general.send(f"{name} Where are you going?")
         helper.append_voice_log(name, 'left')
     if msg is not None:
@@ -412,4 +414,19 @@ async def on_presence_update(before, after):
             await asyncio.sleep(1.5)
         await msg.edit(content=start_str+name_end)
 
-bot.run(sys.argv[1])
+async def load():
+    for filename in os.listdir('./cogs'):
+        if filename.endswith('.py'):
+            await bot.load_extension(f'cogs.{filename[:-3]}')
+
+async def main():
+    await load()
+    daily_announcements.start()
+    jordan_water.start()
+    print("Tasks started")
+    await bot.start(sys.argv[1])
+
+# import logging
+# logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
+asyncio.run(main())
