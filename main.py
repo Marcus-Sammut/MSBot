@@ -338,6 +338,10 @@ async def timer(ctx):
             await ctx.send("im not that retarded")
 
 @bot.command()
+async def kingston(ctx):
+    await ctx.send("fuck KINGSTON")
+
+@bot.command()
 async def val(ctx):
     pass
 
