@@ -22,28 +22,41 @@ bot = commands.Bot(command_prefix='ms!', status=discord.Status.dnd, activity=dis
 
 @bot.event
 async def on_ready():
-    daily_announcements.start()
+    KP_civilisation_notif.start()
     jordan_water.start()
+    gomu_job_morning.start()
+    gomu_job_check.start()
     print('======================\n{0.user} is online!\n======================'.format(bot))
 
-@tasks.loop(minutes=15)
+@tasks.loop(hours=1)
 async def jordan_water():
-    jordan_water.change_interval(minutes=random.choice(range(15, 150)))
+    # jordan_water.change_interval(minutes=random.choice(range(15, 150)))
     general = await bot.fetch_channel(660285290404904982)
     server = bot.get_guild(data.server_id)
     jordan = server.get_member(data.jordan_id)
     if jordan.status == discord.Status.online:
         msg = await general.send(f"{jordan.mention} This is a reminder to drink water and stay hydrated! ")
 
+#23,0 for 10am
+@tasks.loop(time=datetime.time(23,0)) # time is in UTC, AEST +10, AEDT + 11, -11hrs to convert to UTC
+async def gomu_job_morning():
+    general = await bot.fetch_channel(660285290404904982)
+    server = bot.get_guild(data.server_id)
+    gomu = await server.fetch_member(data.gomu_id)
+    await general.send(f"{gomu.mention} APPLY FOR 5 JOBS or else")
+
+@tasks.loop(time=datetime.time(7,0)) # time is in UTC, AEST +10, AEDT + 11, -11hrs to convert to UTC
+async def gomu_job_check():
+    general = await bot.fetch_channel(660285290404904982)
+    server = bot.get_guild(data.server_id)
+    gomu = await server.fetch_member(data.gomu_id)
+    await general.send(f"{gomu.mention} APPLY FOR 5 JOBS or else")
+
 @tasks.loop(time=datetime.time(9,0)) # time is in UTC, AEST +10, AEDT + 11, -11hrs to convert to UTC
-async def daily_announcements():
+async def KP_civilisation_notif():
     general = await bot.fetch_channel(660285290404904982)
     await general.send("Do your daily vote: https://www.webnovel.com/book/civilization_21272045006019305#:~:text=Weekly%20Power%20Status")
 
-@bot.command()
-async def template(ctx):
-    pass
-    
 bot.remove_command("help")
 @bot.command()
 async def help(ctx):
@@ -64,12 +77,13 @@ async def clean(ctx):
     not_deleted = True
     while not_deleted:
         not_deleted = False
-        async for msg in ctx.channel.history(limit=50):
+        async for msg in ctx.channel.history(limit=100):
             if (msg.content.startswith(("ms!","Ms!","mS!","MS!","db!","Db!","dB!","DB!","-p")) or
-                msg.author.id == 897321183794573372 or # Ms bot
-                msg.author.id == 980918916211695717 or # valorant shop
-                msg.author.id == 614109280508968980 or #chip bot
-                msg.author.id == 210363111729790977): #duncte
+                msg.author.id == 897321183794573372 or # MS bot
+                msg.author.id == 882491278581977179 or # Vibr music bot
+                msg.author.id == 980918916211695717 or # Valorant shop
+                msg.author.id == 614109280508968980 or # Chip bot
+                msg.author.id == 210363111729790977):  # Dunctebot
                 not_deleted = True
                 counter += 1
                 to_del.append(msg)
