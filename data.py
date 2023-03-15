@@ -15,6 +15,15 @@ typing_pic_links = [
     "https://lh3.googleusercontent.com/drive-viewer/AJc5JmS5Jh7ynuKRhjlCMiGHVR7-rC2jixoGDPrSD_LMzyVsR7X5HiifwlHWWRjNqrZAz3Y-Mc7fM-Q=w1920-h937",
     "https://lh3.googleusercontent.com/drive-viewer/AJc5JmSIuIZckCSSezFK-1YkCEEgmeMV_0I8Jvi6Px2OAKiTu3xXL1wscOwnRH7lXUGCnltRl3noq_4=w1920-h937"
 ]
+
+bot_ids = [
+    897321183794573372, # MS bot
+    882491278581977179, # Vibr music bot
+    980918916211695717, # Valorant shop
+    614109280508968980, # Chip bot
+    210363111729790977  # Dunctebot
+]
+
 server_id = 391945575886618626
 jeremy_id = 391939457173159936
 MS_id     = 240650380227248128

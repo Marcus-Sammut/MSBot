@@ -81,7 +81,7 @@ def jordan_list():
         jordans.append("J" + "O" * i + "RDAN")
     return jordans
 
-def process_time(time):
+def process_time(time: str):
     timer = {
         'm': 0,
         's': 0,
@@ -103,17 +103,15 @@ def process_time(time):
 def send_timer_msg(timer):
     mins = timer['m']
     secs = timer['s']
+    base_msg = "Jeremy said he will take a shower for"
     if mins > 0 and secs > 0:
-        msg = f"Jeremy said he will take a shower for {timer['m']} minutes and {timer['s']} seconds!"
-    elif mins > 1 and secs == 0:
-        msg = f"Jeremy said he will take a shower for {timer['m']} minutes!"
-    elif mins == 1 and secs == 0:
-        msg = f"Jeremy said he will take a shower for {timer['m']} minute!"
+        return f"{base_msg} {mins} minutes and {secs} seconds!"
+    elif mins >= 1 and secs == 0:
+        return f"{base_msg} {mins} minute{'s' if mins > 1 else ''}!"
     elif mins == 0:
-        msg = f"Jeremy said he will take a shower for {timer['s']} seconds!"
-    return msg
+        return f"{base_msg} {secs} seconds!"
 
-async def do_timer(total, ctx, bot):
+async def do_timer(ctx, total, bot):
     await asyncio.sleep(total)
     jeremy = await bot.fetch_user(data.jeremy_id)
     await ctx.send(f"{ctx.message.author.mention} {jeremy.mention} should be back from his shower now!")
