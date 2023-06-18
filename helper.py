@@ -115,7 +115,7 @@ def send_timer_msg(timer):
 
 async def do_timer(total, ctx, bot):
     await asyncio.sleep(total)
-    jeremy = await bot.fetch_user(data.jeremy_id)
+    jeremy = await bot.fetch_user(data.id_dict['jeremy'])
     await ctx.send(f"{ctx.message.author.mention} {jeremy.mention} should be back from his shower now!")
 
 def seconds_to_text(secs):

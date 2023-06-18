@@ -20,47 +20,54 @@ intents.presences = True
 intents.members = True
 bot = commands.Bot(command_prefix='ms!', status=discord.Status.dnd, activity=discord.Game(name="ms!help"), intents=intents)
 
+#TODO ping riot api every minute to check if jordan is in game, BY HIMSELF then ping @everyone
+
 @bot.event
 async def on_ready():
     KP_civilisation_notif.start()
     jordan_water.start()
-    gomu_job_morning.start()
-    gomu_job_check.start()
+    # gomu_job_morning.start()
+    # gomu_job_check.start()
     print('======================\n{0.user} is online!\n======================'.format(bot))
 
 @tasks.loop(hours=1)
 async def jordan_water():
     # jordan_water.change_interval(minutes=random.choice(range(15, 150)))
-    general = await bot.fetch_channel(660285290404904982)
-    server = bot.get_guild(data.server_id)
-    jordan = server.get_member(data.jordan_id)
+    general = await bot.fetch_channel(data.id_dict['general'])
+    server = bot.get_guild(data.id_dict['server'])
+    jordan = server.get_member(data.id_dict['jordan'])
     if jordan.status == discord.Status.online:
         msg = await general.send(f"{jordan.mention} This is a reminder to drink water and stay hydrated! ")
 
 #23,0 for 10am
 @tasks.loop(time=datetime.time(23,0)) # time is in UTC, AEST +10, AEDT + 11, -11hrs to convert to UTC
 async def gomu_job_morning():
-    general = await bot.fetch_channel(660285290404904982)
+    general = await bot.fetch_channel(data.general_id)
     server = bot.get_guild(data.server_id)
     gomu = await server.fetch_member(data.gomu_id)
     await general.send(f"{gomu.mention} APPLY FOR 5 JOBS or else")
 
 @tasks.loop(time=datetime.time(7,0)) # time is in UTC, AEST +10, AEDT + 11, -11hrs to convert to UTC
 async def gomu_job_check():
-    general = await bot.fetch_channel(660285290404904982)
+    general = await bot.fetch_channel(data.general_id)
     server = bot.get_guild(data.server_id)
     gomu = await server.fetch_member(data.gomu_id)
-    await general.send(f"{gomu.mention} APPLY FOR 5 JOBS or else")
+    await general.send(f"{gomu.mention} Did you apply for 5 jobs?")
 
 @tasks.loop(time=datetime.time(9,0)) # time is in UTC, AEST +10, AEDT + 11, -11hrs to convert to UTC
 async def KP_civilisation_notif():
-    general = await bot.fetch_channel(660285290404904982)
+    general = await bot.fetch_channel(data.id_dict['general'])
     await general.send("Do your daily vote: https://www.webnovel.com/book/civilization_21272045006019305#:~:text=Weekly%20Power%20Status")
 
 bot.remove_command("help")
 @bot.command()
 async def help(ctx):
     await ctx.send("Available commands: "+data.cmd_list)
+
+@bot.command()
+async def aram(ctx):
+    #TODO
+    await ctx.send(helper.get_aa_quote())
 
 @bot.command()
 async def arthur(ctx):
@@ -78,7 +85,7 @@ async def clean(ctx):
     while not_deleted:
         not_deleted = False
         async for msg in ctx.channel.history(limit=100):
-            if (msg.content.startswith(("ms!","Ms!","mS!","MS!","db!","Db!","dB!","DB!","-p")) or
+            if (msg.content.lower().startswith(("ms!","db!","-p", "/play")) or
                 msg.author.id == 897321183794573372 or # MS bot
                 msg.author.id == 882491278581977179 or # Vibr music bot
                 msg.author.id == 980918916211695717 or # Valorant shop
@@ -112,6 +119,11 @@ async def dinner(ctx):
     await ctx.send("https://cdn.discordapp.com/attachments/699292316267184248/979656946489655316/unknown.png")
 
 @bot.command()
+async def doItAgain(ctx):
+    #TODO
+    pass
+
+@bot.command()
 async def dopa(ctx):
     await ctx.send("https://clips.twitch.tv/SleepyAwkwardMonitorKlappa-EHSxkSxW6qP-Ai2V")
 
@@ -125,11 +137,11 @@ async def github(ctx):
 
 @bot.command()
 async def gomu(ctx):
-    server = await bot.fetch_guild(data.server_id)
-    gomu = await server.fetch_member(data.gomu_id)
+    server = await bot.fetch_guild(data.id_dict['server'])
+    gomu = await server.fetch_member(data.id_dict['gomu'])
     
     if gomu.voice is None:
-        msg = await ctx.send(f"fuck you {gomu.mention}?")
+        msg = await ctx.send(f"Hey {gomu.mention}, how are you doing?")
         await msg.add_reaction("<:chonkstone:811979419571847239>")
     else:
         await gomu.move_to(None)
@@ -253,7 +265,7 @@ async def oi_error(ctx, error):
 @bot.command()
 async def ooo(ctx):
     start_str = "JOOOOO"
-    general = await bot.fetch_channel(660285290404904982)
+    general = await bot.fetch_channel(data.id_dict['general'])
     msg = await general.send(start_str)
     for _ in range(10):
         start_str += "OOOOOO"
@@ -352,14 +364,6 @@ async def timer(ctx):
             await ctx.send("im not that retarded")
 
 @bot.command()
-async def kingston(ctx):
-    await ctx.send("fuck KINGSTON")
-
-@bot.command()
-async def val(ctx):
-    pass
-
-@bot.command()
 async def yt(ctx):
     await ctx.send("https://www.youtube.com/channel/UCEcv1n1cuUC4jdcrdy71S5Q")
 
@@ -367,8 +371,11 @@ async def yt(ctx):
 async def on_message(msg):
     if msg.author == bot.user:
         return
-    if msg.author.id == data.gomu_id:
+    if msg.author.id == data.id_dict['gomu']:
         await msg.add_reaction("<:chonkstone:811979419571847239>")
+    elif msg.author.id == 882491278581977179:
+        await asyncio.sleep(600)
+        await msg.delete()
     if helper.check_MS(msg.content):
         await msg.add_reaction("🇲")
         await msg.add_reaction("🇸")
@@ -400,29 +407,38 @@ async def on_voice_state_update(member, before, after):
         msg = await general.send(f"Hi {name}")
         helper.append_voice_log(name, 'joined')
     elif after.channel is None:
-        msg = await general.send(f"{name} Where are you going?")
+        if member.id == data.id_dict['jordan']:
+            msg = await general.send(f"DID YOU SAY BYE {member.mention}?")
+        else:
+            msg = await general.send(f"{name} Where are you going?")
+        #TODO ms!lastseen, shows when they were last in voice chat
         helper.append_voice_log(name, 'left')
     if msg is not None:
-        await asyncio.sleep(15)
+        await asyncio.sleep(30)
         await msg.delete()
 
 @bot.event
 async def on_typing(channel, user, when):
-    if channel.guild.id == data.server_id:
+    if channel.guild.id == data.id_dict['server']:
         msg = await channel.send(random.choice(data.typing_pic_links))
         await asyncio.sleep(1.5)
         await msg.delete()
 
 @bot.event
 async def on_presence_update(before, after):
-    if (after.id == data.jordan_id or after.id == data.colden_id) and before.status == discord.Status.offline:
-        if after.id == data.jordan_id:
+    if after.id == data.id_dict['gomu'] and before.status == discord.Status.offline:
+        general = await bot.fetch_channel(data.id_dict['general'])
+        server = bot.get_guild(data.id_dict['server'])
+        gomu = await server.fetch_member(data.id_dict['gomu'])
+        await general.send(f"{gomu.mention} go back to work")
+    elif (after.id == data.id_dict['jordan'] or after.id == data.id_dict['colden']) and before.status == discord.Status.offline:
+        if after.id == data.id_dict['jordan']:
             start_str = f"{after.mention} JOOOOO"
             name_end = "RDAN"
         else:
             start_str = f"{after.mention} COOOOO"
             name_end = "LDEN"
-        general = await bot.fetch_channel(660285290404904982)
+        general = await bot.fetch_channel(data.id_dict['general'])
         msg = await general.send(start_str)
         for _ in range(10):
             start_str += "OOOOOO"

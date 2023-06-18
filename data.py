@@ -15,13 +15,24 @@ typing_pic_links = [
     "https://lh3.googleusercontent.com/drive-viewer/AJc5JmS5Jh7ynuKRhjlCMiGHVR7-rC2jixoGDPrSD_LMzyVsR7X5HiifwlHWWRjNqrZAz3Y-Mc7fM-Q=w1920-h937",
     "https://lh3.googleusercontent.com/drive-viewer/AJc5JmSIuIZckCSSezFK-1YkCEEgmeMV_0I8Jvi6Px2OAKiTu3xXL1wscOwnRH7lXUGCnltRl3noq_4=w1920-h937"
 ]
-server_id = 391945575886618626
-jeremy_id = 391939457173159936
-MS_id     = 240650380227248128
-gomu_id   = 423369088681902080
-danny_id  = 489784969800187904
-jordan_id = 242485947902459904
-colden_id = 375168142781186049
+# server_id  = 391945575886618626
+# general_id = 660285290404904982
+# jeremy_id  = 391939457173159936
+# MS_id      = 240650380227248128
+# gomu_id    = 423369088681902080
+# danny_id   = 489784969800187904
+# jordan_id  = 242485947902459904
+# colden_id  = 375168142781186049
+id_dict = {
+    'server':  391945575886618626,
+    'general': 660285290404904982,
+    'jeremy':  391939457173159936,
+    'MS':      240650380227248128,
+    'gomu':    423369088681902080,
+    'danny':   489784969800187904,
+    'jordan':  242485947902459904,
+    'colden':  375168142781186049,
+}
 medal_list = [
     {
         'name': 'Arthur', 
