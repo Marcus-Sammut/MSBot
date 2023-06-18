@@ -15,14 +15,7 @@ typing_pic_links = [
     "https://lh3.googleusercontent.com/drive-viewer/AJc5JmS5Jh7ynuKRhjlCMiGHVR7-rC2jixoGDPrSD_LMzyVsR7X5HiifwlHWWRjNqrZAz3Y-Mc7fM-Q=w1920-h937",
     "https://lh3.googleusercontent.com/drive-viewer/AJc5JmSIuIZckCSSezFK-1YkCEEgmeMV_0I8Jvi6Px2OAKiTu3xXL1wscOwnRH7lXUGCnltRl3noq_4=w1920-h937"
 ]
-# server_id  = 391945575886618626
-# general_id = 660285290404904982
-# jeremy_id  = 391939457173159936
-# MS_id      = 240650380227248128
-# gomu_id    = 423369088681902080
-# danny_id   = 489784969800187904
-# jordan_id  = 242485947902459904
-# colden_id  = 375168142781186049
+
 id_dict = {
     'server':  391945575886618626,
     'general': 660285290404904982,
@@ -33,6 +26,15 @@ id_dict = {
     'jordan':  242485947902459904,
     'colden':  375168142781186049,
 }
+
+bot_ids = [
+    897321183794573372, # MS bot
+    882491278581977179, # Vibr music bot
+    980918916211695717, # Valorant shop
+    614109280508968980, # Chip bot
+    210363111729790977  # Dunctebot
+]
+
 medal_list = [
     {
         'name': 'Arthur', 

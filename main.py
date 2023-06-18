@@ -1,4 +1,3 @@
-"""implements all commands and features of MSBot"""
 import asyncio
 import datetime
 import os
@@ -85,12 +84,7 @@ async def clean(ctx):
     while not_deleted:
         not_deleted = False
         async for msg in ctx.channel.history(limit=100):
-            if (msg.content.lower().startswith(("ms!","db!","-p", "/play")) or
-                msg.author.id == 897321183794573372 or # MS bot
-                msg.author.id == 882491278581977179 or # Vibr music bot
-                msg.author.id == 980918916211695717 or # Valorant shop
-                msg.author.id == 614109280508968980 or # Chip bot
-                msg.author.id == 210363111729790977):  # Dunctebot
+            if (msg.content.lower().startswith(("ms!","db!","-p")) or msg.author.id in data.bot_ids):
                 not_deleted = True
                 counter += 1
                 to_del.append(msg)
@@ -179,8 +173,10 @@ async def medal(ctx, member: discord.Member=None, days=7):
         return
     if type(days) != int:
         await ctx.send("Please put a number")
+        return
     if days < 1:
         await ctx.send("Must be at least 1 day")
+        return
     for dict in data.medal_list:
         if dict['d_id'] == member.id:
             clips = helper.get_recent_clips(dict['m_id'], days)
@@ -214,8 +210,12 @@ async def multi(ctx):
 
 @bot.command(aliases=['clips'])
 async def recent_clips(ctx, days=7):
-    if type(days) != int: await ctx.send("Please put a number"); return
-    if days < 1: await ctx.send("Must be at least 1 day"); return
+    if type(days) != int: 
+        await ctx.send("Please put a number")
+        return
+    if days < 1:
+        await ctx.send("Must be at least 1 day")
+        return
     embed = discord.Embed(colour=discord.Colour.orange())
     clip_count = 0
     for dict in data.medal_list:
@@ -226,7 +226,7 @@ async def recent_clips(ctx, days=7):
             clips_str += f"{clip['contentTitle']} {game_name}\n{clip['directClipUrl']}\n"
         if clips_str != "": embed.add_field(name=f"{dict['name']}'s clips:", value=clips_str, inline=False)
     if clip_count == 0: await ctx.send(f"<:ResidentChriser:944865466424393738> No recent clips in the last {days} days <:ResidentChriser:944865466424393738>"); return
-    embed.title = f"{clip_count} Clips from the last {days} days:"
+    embed.title = f"{clip_count} Clip{'s' if clip_count > 1 else ''} from the last {days} days:"
     await ctx.send(embed=embed)
 
 @bot.command()
@@ -351,17 +351,20 @@ async def sro(ctx):
     # tts cmd where msbot joins the discord and says the tts and leaves+----+-+++
 
 @bot.command()
-async def timer(ctx):
-    args = ctx.message.content[3:].lower().split()
-    if len(args) == 1:
-        await ctx.send("How long? m:s or s")
-    else:
-        timer = helper.process_time(args[1])
-        if timer is not None:
-            await ctx.send(helper.send_timer_msg(timer))
-            await helper.do_timer(timer['total'], ctx, bot)
-        else:
-            await ctx.send("im not that retarded")
+async def timer(ctx, time: None):
+    if time is None:
+        await ctx.send("How long? minutes:seconds or seconds")
+        return
+    # TODO: try catch block, and throw exeptions in process time
+    try:
+        timer = helper.process_time(time)
+    except:
+        pass
+    # if timer := helper.process_time(time):
+    #     await ctx.send(helper.send_timer_msg(timer))
+    #     await helper.do_timer(ctx, timer['total'], bot)
+    # else:
+    #     await ctx.send("im not that retarded")
 
 @bot.command()
 async def yt(ctx):
