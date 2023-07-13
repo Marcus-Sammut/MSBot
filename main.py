@@ -29,14 +29,18 @@ async def on_ready():
     # gomu_job_check.start()
     print('======================\n{0.user} is online!\n======================'.format(bot))
 
+jordan_water_lock = asyncio.Lock()
+
 @tasks.loop(hours=1)
 async def jordan_water():
-    # jordan_water.change_interval(minutes=random.choice(range(15, 150)))
-    general = await bot.fetch_channel(data.id_dict['general'])
-    server = bot.get_guild(data.id_dict['server'])
-    jordan = server.get_member(data.id_dict['jordan'])
-    if jordan.status == discord.Status.online:
-        msg = await general.send(f"{jordan.mention} This is a reminder to drink water and stay hydrated! ")
+    if not jordan_water_lock.locked():
+        async with jordan_water_lock:
+            # jordan_water.change_interval(minutes=random.choice(range(15, 150)))
+            general = await bot.fetch_channel(data.id_dict['general'])
+            server = bot.get_guild(data.id_dict['server'])
+            jordan = server.get_member(data.id_dict['jordan'])
+            if jordan.status == discord.Status.online:
+                await general.send(f"{jordan.mention} This is a reminder to drink water and stay hydrated! ")
 
 #23,0 for 10am
 @tasks.loop(time=datetime.time(23,0)) # time is in UTC, AEST +10, AEDT + 11, -11hrs to convert to UTC
