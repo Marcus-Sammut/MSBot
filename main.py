@@ -23,40 +23,29 @@ bot = commands.Bot(command_prefix='ms!', status=discord.Status.dnd, activity=dis
 
 @bot.event
 async def on_ready():
-    KP_civilisation_notif.start()
-    jordan_water.start()
-    # gomu_job_morning.start()
-    # gomu_job_check.start()
+    await bot.fetch_channel(data.id_dict['general'])
+    await bot.fetch_guild(data.id_dict['server'])
+    if not daily_notification.is_running():
+        daily_notification.start()
+    if not jordan_water.is_running():
+        jordan_water.start()
     print('======================\n{0.user} is online!\n======================'.format(bot))
 
-@tasks.loop(hours=1)
+@tasks.loop(hours=24)
+async def daily_notification():
+    general = bot.get_channel(data.id_dict['general'])
+    # await general.send("Do your daily vote: https://www.webnovel.com/book/civilization_21272045006019305#:~:text=Weekly%20Power%20Status")
+    res_code = helper.get_recent_clips(1,1)
+    server = bot.get_guild(data.id_dict['server'])
+    ms = await server.fetch_member(data.id_dict['MS'])
+    await general.send(f"{ms.mention} medal.tv api response code: {res_code}")
+
+@tasks.loop(time=[datetime.time(i,0) for i in range (24)])
 async def jordan_water():
-    # jordan_water.change_interval(minutes=random.choice(range(15, 150)))
-    general = await bot.fetch_channel(data.id_dict['general'])
     server = bot.get_guild(data.id_dict['server'])
     jordan = server.get_member(data.id_dict['jordan'])
     if jordan.status == discord.Status.online:
-        msg = await general.send(f"{jordan.mention} This is a reminder to drink water and stay hydrated! ")
-
-#23,0 for 10am
-@tasks.loop(time=datetime.time(23,0)) # time is in UTC, AEST +10, AEDT + 11, -11hrs to convert to UTC
-async def gomu_job_morning():
-    general = await bot.fetch_channel(data.general_id)
-    server = bot.get_guild(data.server_id)
-    gomu = await server.fetch_member(data.gomu_id)
-    await general.send(f"{gomu.mention} APPLY FOR 5 JOBS or else")
-
-@tasks.loop(time=datetime.time(7,0)) # time is in UTC, AEST +10, AEDT + 11, -11hrs to convert to UTC
-async def gomu_job_check():
-    general = await bot.fetch_channel(data.general_id)
-    server = bot.get_guild(data.server_id)
-    gomu = await server.fetch_member(data.gomu_id)
-    await general.send(f"{gomu.mention} Did you apply for 5 jobs?")
-
-@tasks.loop(time=datetime.time(9,0)) # time is in UTC, AEST +10, AEDT + 11, -11hrs to convert to UTC
-async def KP_civilisation_notif():
-    general = await bot.fetch_channel(data.id_dict['general'])
-    await general.send("Do your daily vote: https://www.webnovel.com/book/civilization_21272045006019305#:~:text=Weekly%20Power%20Status")
+        await bot.get_channel(data.id_dict['general']).send(f"{jordan.mention} This is a reminder to drink water and stay hydrated!")
 
 bot.remove_command("help")
 @bot.command()
@@ -84,7 +73,7 @@ async def clean(ctx):
     while not_deleted:
         not_deleted = False
         async for msg in ctx.channel.history(limit=100):
-            if (msg.content.lower().startswith(("ms!","db!","-p")) or msg.author.id in data.bot_ids):
+            if (msg.content.lower().startswith(("ms!","db!","-p")) or msg.author.id in list(data.bot_ids.values())):
                 not_deleted = True
                 counter += 1
                 to_del.append(msg)
@@ -100,8 +89,8 @@ async def daddy(ctx):
 
 @bot.command()
 async def darius(ctx):
-    await ctx.send("""He's got more mobility than Darius, a juggernaut centric on healing in his radius. 
-I don't mind that his Q heals a ton, but gore drinker should not get the amp. He isn't a juggernaut, he is a bruiser.""")
+    await ctx.send("He's got more mobility than Darius, a juggernaut centric on healing in his radius.\n\
+                    \rI don't mind that his Q heals a ton, but gore drinker should not get the amp. He isn't a juggernaut, he is a bruiser.")
 
 @bot.command()
 async def dice(ctx, start=1, end=6):
@@ -131,7 +120,7 @@ async def github(ctx):
 
 @bot.command()
 async def gomu(ctx):
-    server = await bot.fetch_guild(data.id_dict['server'])
+    server = bot.get_guild(data.id_dict['server'])
     gomu = await server.fetch_member(data.id_dict['gomu'])
     
     if gomu.voice is None:
@@ -168,6 +157,11 @@ async def log(ctx):
 
 @bot.command()
 async def medal(ctx, member: discord.Member=None, days=7):
+    # TEMP: remove when code is 200
+    await ctx.send("ms medal is dead")
+    return
+    # end block
+    
     if member is None:
         await ctx.send("Tag someone to see their recent clips <:creamonbloke:738031587299426304>")
         return
@@ -265,7 +259,7 @@ async def oi_error(ctx, error):
 @bot.command()
 async def ooo(ctx):
     start_str = "JOOOOO"
-    general = await bot.fetch_channel(data.id_dict['general'])
+    general = bot.get_channel(data.id_dict['general'])
     msg = await general.send(start_str)
     for _ in range(10):
         start_str += "OOOOOO"
@@ -363,8 +357,6 @@ async def timer(ctx, time: None):
     # if timer := helper.process_time(time):
     #     await ctx.send(helper.send_timer_msg(timer))
     #     await helper.do_timer(ctx, timer['total'], bot)
-    # else:
-    #     await ctx.send("im not that retarded")
 
 @bot.command()
 async def yt(ctx):
@@ -376,7 +368,7 @@ async def on_message(msg):
         return
     if msg.author.id == data.id_dict['gomu']:
         await msg.add_reaction("<:chonkstone:811979419571847239>")
-    elif msg.author.id == 882491278581977179:
+    elif msg.author.id == 882491278581977179: #vibr music bot
         await asyncio.sleep(600)
         await msg.delete()
     if helper.check_MS(msg.content):
@@ -392,11 +384,11 @@ async def on_message(msg):
         for word in msg_split:
             if re.search("beast", word, re.IGNORECASE):
                 await msg.add_reaction("🦍")
-            elif re.search("boom", word, re.IGNORECASE):
+            if re.search("boom", word, re.IGNORECASE):
                 await msg.add_reaction("💥")
-            elif re.search("holy", word, re.IGNORECASE):
+            if re.search("holy", word, re.IGNORECASE):
                 await msg.add_reaction("⛪")
-            elif re.search("<@423369088681902080>", word, re.IGNORECASE):
+            if re.search("<@423369088681902080>", word, re.IGNORECASE):
                 await msg.add_reaction("<:chonkstone:811979419571847239>")
 
     await bot.process_commands(msg)
@@ -405,7 +397,7 @@ async def on_message(msg):
 async def on_voice_state_update(member, before, after):
     name = member.nick if member.nick != None else member.name
     msg = None
-    general = await bot.fetch_channel(660285290404904982)
+    general = bot.get_channel(data.id_dict['general'])
     if before.channel is None:
         msg = await general.send(f"Hi {name}")
         helper.append_voice_log(name, 'joined')
@@ -430,7 +422,7 @@ async def on_typing(channel, user, when):
 @bot.event
 async def on_presence_update(before, after):
     if after.id == data.id_dict['gomu'] and before.status == discord.Status.offline:
-        general = await bot.fetch_channel(data.id_dict['general'])
+        general = bot.get_channel(data.id_dict['general'])
         server = bot.get_guild(data.id_dict['server'])
         gomu = await server.fetch_member(data.id_dict['gomu'])
         await general.send(f"{gomu.mention} go back to work")
@@ -441,12 +433,12 @@ async def on_presence_update(before, after):
         else:
             start_str = f"{after.mention} COOOOO"
             name_end = "LDEN"
-        general = await bot.fetch_channel(data.id_dict['general'])
+        general = bot.get_channel(data.id_dict['general'])
         msg = await general.send(start_str)
         for _ in range(10):
             start_str += "OOOOOO"
             await msg.edit(content=start_str)
-            await asyncio.sleep(1.5)
+            await asyncio.sleep(1.3)
         await msg.edit(content=start_str+name_end)
 
 bot.run(sys.argv[1])

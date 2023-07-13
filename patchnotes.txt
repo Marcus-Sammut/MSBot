@@ -1,4 +1,7 @@
 MS Bot Patch Notes
+13/07/23:
+Thisisaremindertodrinkwaterandstayhydrated!: patched to not spam jordan after MSBot device has been asleep
+
 30.10:
 JOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORDAN: added ms!JOOOOOOOOOOORDAN which can be called using 1-100 'O's which sends the famous JOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORDAN clip
 

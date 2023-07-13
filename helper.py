@@ -38,12 +38,6 @@ def check_MS(msg):
     else:
         return False
 
-def fetch_member(id, members):
-    for member in members:
-        print('huh', member.id,' ', id)
-        if member.id == id:
-            return member
-
 def get_aa_quote():
     quote = random.choice(data.arthur_quotes)
     return "\"" + quote + "\"" + " - Arthur Ang"
@@ -66,6 +60,8 @@ def get_game_name(category_id):
 def get_recent_clips(id, days):
     header = {"Authorization":"pub_qBFrFBCfU0SErmP9hChALNXeQnyekLik"}
     response = requests.get(f"https://developers.medal.tv/v1/latest?userId={id}&limit=100", headers=header)
+    # TEMP: remove when code is 200
+    return response.status_code
     json_data = json.loads(response.text)
     recent_clips = []
     for data in json_data['contentObjects']:

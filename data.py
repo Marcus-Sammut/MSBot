@@ -27,13 +27,17 @@ id_dict = {
     'colden':  375168142781186049,
 }
 
-bot_ids = [
-    897321183794573372, # MS bot
-    882491278581977179, # Vibr music bot
-    980918916211695717, # Valorant shop
-    614109280508968980, # Chip bot
-    210363111729790977  # Dunctebot
-]
+bot_ids = {
+    'MSBot':        897321183794573372, # MS bot
+    'Chip':         614109280508968980, # Chip bot
+    'DankMemer':    270904126974590976, 
+    'DuncteBot':    210363111729790977, # Dunctebot
+    'Lindsey':      119482224713269248,
+    'ProBot':       282859044593598464,
+    'Vibr':         882491278581977179, # Vibr music bot
+    'ValorantLabs': 702201518329430117,
+    'ValorantShop': 980918916211695717, # Valorant shop
+}
 
 medal_list = [
     {
