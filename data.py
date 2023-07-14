@@ -1,6 +1,5 @@
 arthur_quotes = ["raw dog", "hamdulillah", "whats the play", "snap off", "so sick", "cheesily so soft", "why you repping", "so cooked", "packing heat", "flop it out", "so solid", "force", "so raw", "sus it out", "thoughts?", "you like that cleanse?"]
-cmd_list = """```5stars arthur boom clean clips daddy darius dice dinner dopa github gomu inspire J(O*1..100)RDAN knock ladbrokes leaderboard medal multi of oi opgg patchnotes razza resetnames shuffle snoopy sro stats timer yt
-music: play pause resume stop seek queue skip loop np```
+cmd_list = """```5stars arthur boom clean clips darius dice dinner dopa github gomu inspire J(O*1..100)RDAN knock ladbrokes leaderboard medal multi of oi opgg patchnotes razza resetnames shuffle snoopy sro stats timer yt
 """
 # typing_pic_links = [
 #     "https://cdn.discordapp.com/attachments/660285290404904982/976473374178029568/unknown.png",
@@ -39,7 +38,7 @@ bot_ids = {
     'ValorantShop': 980918916211695717, # Valorant shop
 }
 
-medal_list = [
+medal_user_list = [
     {
         'name': 'Arthur', 
         'd_id': 309644959026380801, 

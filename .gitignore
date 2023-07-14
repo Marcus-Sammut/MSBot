@@ -4,8 +4,9 @@ __pycache__/
 *$py.class
 
 # MS added
-.replit
-.sh
+*.sh
+*.cmd
+voice_log.txt
 
 # C extensions
 *.so

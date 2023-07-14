@@ -17,7 +17,7 @@ import helper
 intents = discord.Intents.all()
 intents.presences = True
 intents.members = True
-bot = commands.Bot(command_prefix='ms!', status=discord.Status.dnd, activity=discord.Game(name="ms!help"), intents=intents)
+bot = commands.Bot(command_prefix='ms!', activity=discord.Game(name="ms!help"), intents=intents)
 
 #TODO ping riot api every minute to check if jordan is in game, BY HIMSELF then ping @everyone
 
@@ -29,7 +29,7 @@ async def on_ready():
         daily_notification.start()
     if not jordan_water.is_running():
         jordan_water.start()
-    print('======================\n{0.user} is online!\n======================'.format(bot))
+    print(f'======================\n{bot} is online!\n======================')
 
 @tasks.loop(hours=24)
 async def daily_notification():
@@ -40,16 +40,17 @@ async def daily_notification():
     ms = await server.fetch_member(data.id_dict['MS'])
     await general.send(f"{ms.mention} medal.tv api response code: {res_code}")
 
-@tasks.loop(time=[datetime.time(i,0) for i in range (24)])
+@tasks.loop(time=[datetime.time(i,random.randint(0,59)) for i in range (24)])
 async def jordan_water():
     server = bot.get_guild(data.id_dict['server'])
     jordan = server.get_member(data.id_dict['jordan'])
     if jordan.status == discord.Status.online:
-        await bot.get_channel(data.id_dict['general']).send(f"{jordan.mention} This is a reminder to drink water and stay hydrated!")
+        general = bot.get_channel(data.id_dict['general'])
+        await general.send(f"{jordan.mention} This is a reminder to drink water and stay hydrated!")
 
 bot.remove_command("help")
-@bot.command()
-async def help(ctx):
+@bot.command(aliases=['help'])
+async def show_commands(ctx):
     await ctx.send("Available commands: "+data.cmd_list)
 
 @bot.command()
@@ -90,7 +91,7 @@ async def daddy(ctx):
 @bot.command()
 async def darius(ctx):
     await ctx.send("He's got more mobility than Darius, a juggernaut centric on healing in his radius.\n\
-                    \rI don't mind that his Q heals a ton, but gore drinker should not get the amp. He isn't a juggernaut, he is a bruiser.")
+    \rI don't mind that his Q heals a ton, but gore drinker should not get the amp. He isn't a juggernaut, he is a bruiser.")
 
 @bot.command()
 async def dice(ctx, start=1, end=6):
@@ -121,13 +122,12 @@ async def github(ctx):
 @bot.command()
 async def gomu(ctx):
     server = bot.get_guild(data.id_dict['server'])
-    gomu = await server.fetch_member(data.id_dict['gomu'])
-    
-    if gomu.voice is None:
-        msg = await ctx.send(f"Hey {gomu.mention}, how are you doing?")
+    kingston = await server.fetch_member(data.id_dict['gomu'])
+    if kingston.voice is None:
+        msg = await ctx.send(f"Hey {kingston.mention}, how are you doing?")
         await msg.add_reaction("<:chonkstone:811979419571847239>")
     else:
-        await gomu.move_to(None)
+        await kingston.move_to(None)
 
 @bot.command()
 async def hydra(ctx):
@@ -161,32 +161,32 @@ async def medal(ctx, member: discord.Member=None, days=7):
     await ctx.send("ms medal is dead")
     return
     # end block
-    
     if member is None:
         await ctx.send("Tag someone to see their recent clips <:creamonbloke:738031587299426304>")
         return
-    if type(days) != int:
+    if isinstance(days) != int:
         await ctx.send("Please put a number")
         return
     if days < 1:
         await ctx.send("Must be at least 1 day")
         return
-    for dict in data.medal_list:
-        if dict['d_id'] == member.id:
-            clips = helper.get_recent_clips(dict['m_id'], days)
+    sleeper_emoji = "<:ResidentChriser:944865466424393738>"
+    for user in data.medal_user_list:
+        if user['d_id'] == member.id:
+            clips = helper.get_recent_clips(user['m_id'], days)
             embed = discord.Embed(
-                title = f"{len(clips)} Clips from {member.display_name} in the last {days} days:", 
+                title = f"{len(clips)} Clips from {member.display_name} in the last {days} days:",
                 colour = discord.Colour.orange()
             )
             for clip in clips:
                 game_name = helper.get_game_name(int(clip['categoryId']))
                 embed.add_field(name=f"{clip['contentTitle']} {game_name}", value=clip['directClipUrl'], inline=False)
             if not clips:
-                await ctx.send(f"<:ResidentChriser:944865466424393738> {member.mention} has no recent clips <:ResidentChriser:944865466424393738>")
+                await ctx.send(f"{sleeper_emoji} {member.mention} has no recent clips {sleeper_emoji}")
             else:
                 await ctx.send(embed=embed)
             return
-    await ctx.send(f"<:ResidentChriser:944865466424393738> {member.mention} has no clips <:ResidentChriser:944865466424393738>")
+    await ctx.send(f"{sleeper_emoji} {member.mention} has no clips {sleeper_emoji}")
 
 @bot.command()
 async def millionaire(ctx):
@@ -195,8 +195,8 @@ async def millionaire(ctx):
 @bot.command()
 async def multi(ctx):
     msgs = []
-    for multi in os.listdir('./multis'):
-        msg = await ctx.send(multi,file=discord.File(f'./multis/{multi}'))
+    for multi_pic in os.listdir('./multis'):
+        msg = await ctx.send(multi,file=discord.File(f'./multis/{multi_pic}'))
         msgs.append(msg)
     await ctx.message.delete()
     await asyncio.sleep(120)
@@ -204,7 +204,7 @@ async def multi(ctx):
 
 @bot.command(aliases=['clips'])
 async def recent_clips(ctx, days=7):
-    if type(days) != int: 
+    if isinstance(days) != int:
         await ctx.send("Please put a number")
         return
     if days < 1:
@@ -212,14 +212,18 @@ async def recent_clips(ctx, days=7):
         return
     embed = discord.Embed(colour=discord.Colour.orange())
     clip_count = 0
-    for dict in data.medal_list:
+    for user in data.medal_user_list:
         clips_str = ""
-        for clip in helper.get_recent_clips(dict['m_id'], days):
+        for clip in helper.get_recent_clips(user['m_id'], days):
             clip_count += 1
             game_name = helper.get_game_name(int(clip['categoryId']))
             clips_str += f"{clip['contentTitle']} {game_name}\n{clip['directClipUrl']}\n"
-        if clips_str != "": embed.add_field(name=f"{dict['name']}'s clips:", value=clips_str, inline=False)
-    if clip_count == 0: await ctx.send(f"<:ResidentChriser:944865466424393738> No recent clips in the last {days} days <:ResidentChriser:944865466424393738>"); return
+        if clips_str != "":
+            embed.add_field(name=f"{user['name']}'s clips:", value=clips_str, inline=False)
+    if clip_count == 0:
+        sleeper_emoji = "<:ResidentChriser:944865466424393738>"
+        await ctx.send(f"{sleeper_emoji} No recent clips in the last {days} days {sleeper_emoji}")
+        return
     embed.title = f"{clip_count} Clip{'s' if clip_count > 1 else ''} from the last {days} days:"
     await ctx.send(embed=embed)
 
@@ -240,7 +244,7 @@ async def oi(ctx, member: discord.Member=None):
     _vcs.remove(initial_ch)
     vc_list = [vc for vc in _vcs if vc.name != 'Mary Juan']
     prev = None
-    for i in range(7):
+    for _ in range(7):
         curr = random.choice(vc_list)
         while curr == prev:
             curr = random.choice(vc_list)
@@ -301,7 +305,7 @@ async def reset_nicknames(ctx):
             await msg.delete()
             for member in ctx.guild.members:
                 for role in member.roles:
-                    if role.name == "Secretary" or role.name == "Vice Principal":
+                    if role.name in ('Secretary', 'Vice Principal'):
                         await member.edit(nick=None)
     await ctx.send("All nicknames reset!")
 
@@ -314,7 +318,7 @@ async def shuffle(ctx):
     nicks = []
     for member in server.members:
         for role in member.roles:
-            if role.name == "Secretary" or role.name == "Vice Principal":
+            if role.name in ('Secretary', 'Vice Principal'):
                 nicks.append(member.nick)
                 the_real_ones.append(member)
     random.shuffle(nicks)
@@ -345,13 +349,13 @@ async def sro(ctx):
     # tts cmd where msbot joins the discord and says the tts and leaves+----+-+++
 
 @bot.command()
-async def timer(ctx, time: None):
-    if time is None:
+async def timer(ctx, duration: None):
+    if duration is None:
         await ctx.send("How long? minutes:seconds or seconds")
         return
     # TODO: try catch block, and throw exeptions in process time
     try:
-        timer = helper.process_time(time)
+        duration_dict = helper.process_time(duration)
     except:
         pass
     # if timer := helper.process_time(time):
@@ -395,7 +399,7 @@ async def on_message(msg):
 
 @bot.event
 async def on_voice_state_update(member, before, after):
-    name = member.nick if member.nick != None else member.name
+    name = member.nick if member.nick is not None else member.name
     msg = None
     general = bot.get_channel(data.id_dict['general'])
     if before.channel is None:
@@ -421,18 +425,11 @@ async def on_typing(channel, user, when):
 
 @bot.event
 async def on_presence_update(before, after):
-    if after.id == data.id_dict['gomu'] and before.status == discord.Status.offline:
-        general = bot.get_channel(data.id_dict['general'])
-        server = bot.get_guild(data.id_dict['server'])
-        gomu = await server.fetch_member(data.id_dict['gomu'])
-        await general.send(f"{gomu.mention} go back to work")
-    elif (after.id == data.id_dict['jordan'] or after.id == data.id_dict['colden']) and before.status == discord.Status.offline:
-        if after.id == data.id_dict['jordan']:
-            start_str = f"{after.mention} JOOOOO"
-            name_end = "RDAN"
-        else:
-            start_str = f"{after.mention} COOOOO"
-            name_end = "LDEN"
+    if before.status != discord.Status.offline:
+        return
+    if any(twins := [after.id == data.id_dict['jordan'], after.id == data.id_dict['colden']]):
+        start_str = f"{after.mention} {'JOOOOO' if twins[0] else 'COOOOO'}"
+        name_end = f"{'RDAN' if twins[0] else 'LDEN'}"
         general = bot.get_channel(data.id_dict['general'])
         msg = await general.send(start_str)
         for _ in range(10):
