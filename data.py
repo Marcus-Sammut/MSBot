@@ -1,6 +1,5 @@
-arthur_quotes = ["raw dog", "hamdulillah", "whats the play", "snap off", "so sick", "cheesily so soft", "why you repping", "so cooked", "packing heat", "flop it out", "so solid", "force", "so raw", "sus it out", "thoughts?", "you like that cleanse?"]
-cmd_list = """```5stars arthur boom clean clips darius dice dinner dopa github gomu inspire J(O*1..100)RDAN knock ladbrokes leaderboard medal multi of oi opgg patchnotes razza resetnames shuffle snoopy sro stats timer yt
-"""
+arthur_quotes = ["raw dog", "hamdulillah", "whats the play", "snap off", "so sick", "cheesily so soft", "why you repping", "so cooked", "packing heat", "flop it out", "so solid", "force", "so raw", "sus it out", "thoughts?", "you like that cleanse?", "kickback"]
+cmd_list = "```5stars addintlist aram arthur boom clean clips darius deleteintlist dice dinner dopa github gomu inspire intlist J(O*1..100)RDAN knock ladbrokes leaderboard medal multi of oi opgg patchnotes razza resetnames removeintlist shuffle snoopy sro stats timer yt```"
 # typing_pic_links = [
 #     "https://cdn.discordapp.com/attachments/660285290404904982/976473374178029568/unknown.png",
 #     "https://cdn.discordapp.com/attachments/660285290404904982/999325411534192640/segan-removebg-preview_2.png",
@@ -36,6 +35,12 @@ bot_ids = {
     'Vibr':         882491278581977179, # Vibr music bot
     'ValorantLabs': 702201518329430117,
     'ValorantShop': 980918916211695717, # Valorant shop
+}
+
+role_ids = {
+    'Principal': 660275346918080532,
+    'Secretary': 660289999119581187,
+    'Vice Principal': 660275840679936050,
 }
 
 medal_user_list = [
