@@ -1,14 +1,19 @@
 import asyncio
 import datetime
+import functools
+import httpx
+import itertools
 import os
 import pathlib
 import random
 import re
+import requests
 import sys
 import time
 
 import discord
 from discord.ext import commands, tasks
+from discord.ui import Select, View
 
 import art
 import data
@@ -19,25 +24,103 @@ intents.presences = True
 intents.members = True
 bot = commands.Bot(command_prefix='ms!', activity=discord.Game(name="ms!help"), intents=intents)
 
-#TODO ping riot api every minute to check if jordan is in game, BY HIMSELF then ping @everyone
+RIOT_API_KEY = sys.argv[2]
 
 @bot.event
 async def on_ready():
     await bot.fetch_channel(data.id_dict['general'])
     await bot.fetch_guild(data.id_dict['server'])
-    if not daily_notification.is_running():
-        daily_notification.start()
+    await bot.fetch_user(240650380227248128)
+    # ping free champ rotation to check if api key is working, invalid key would return 403
+    if riot_key_is_valid := helper.is_riot_key_valid(RIOT_API_KEY):
+        async def get_encrypted_riot_ids(user: dict):
+            async with httpx.AsyncClient() as client:
+                res = await client.get(f"https://oc1.api.riotgames.com/lol/summoner/v4/summoners/by-name/{user['lol_name']}?api_key={RIOT_API_KEY}")
+                if res.status_code != 200:
+                    return
+                user['encrypted_id'] = dict(res.json())['id']
+
+        while no_ids := [u for u in data.discord_id_list if not u['encrypted_id']]:
+            try:
+                await asyncio.gather(*map(get_encrypted_riot_ids, no_ids))
+            except:
+                pass
+    # if not daily_notification.is_running():
+    #     daily_notification.start()
+    if not validate_riot_key_task.is_running() and riot_key_is_valid:
+        validate_riot_key_task.start()
+    if not jordan_aram.is_running() and riot_key_is_valid:
+        jordan_aram.start()
+    if not check_intlist.is_running() and riot_key_is_valid:
+        check_intlist.start()
     if not jordan_water.is_running():
         jordan_water.start()
     print(f'======================\n{bot.user} is online!\n======================')
 
+@tasks.loop(seconds=30)
+async def validate_riot_key_task():
+    if not helper.is_riot_key_valid(RIOT_API_KEY):
+        validate_riot_key_task.stop()
+        jordan_aram.stop()
+        check_intlist.stop()
+
+jordan_curr_game_id = None
+@tasks.loop(seconds=60)
+async def jordan_aram():
+    global jordan_curr_game_id
+    jordan_id: int = [user['encrypted_id'] for user in data.discord_id_list if user['lol_name'] == 'iamrandom'][0]
+    res = requests.get(f"https://oc1.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/{jordan_id}?api_key={RIOT_API_KEY}")
+    if res.status_code == 404:
+        jordan_curr_game_id = None
+        return
+    elif not res.ok:
+        return
+    match = dict(res.json())
+    if match['gameId'] == jordan_curr_game_id:
+        return
+    jordan_curr_game_id = match['gameId']
+    players: set = {player['summonerName'].replace(' ', '').lower() for player in match['participants']}
+    if not players & data.carlo_chimps_league_names:
+        role_mention_list = [f"<@&{role}>" for role in data.role_ids.values()]
+        general = bot.get_channel(data.id_dict['general'])
+        await general.send(f"{' '.join(role_mention_list)} JORDAN IS PLAYING LEAGUE SOLO <https://www.op.gg/summoners/oce/iamrandom/ingame>")
+
+@tasks.loop(seconds=40)
+async def check_intlist():
+    async def get_async_inters(user: dict, inters: list):
+        server = bot.get_guild(data.id_dict['server'])
+        async with httpx.AsyncClient() as client:
+            if (member := server.get_member(user['d_id'])).status == discord.Status.offline:
+                return None
+            res = await client.get(f"https://oc1.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/{user['encrypted_id']}?api_key={RIOT_API_KEY}")
+            if res.status_code == 404:
+                user['currgameid'] = None
+                return None
+            elif res.status_code >= 400:
+                return None
+            match = dict(res.json())
+            if match['gameId'] == user['curr_game_id']:
+                return None
+            user['curr_game_id'] = match['gameId']
+            players: set = {player['summonerName'].replace(' ', '').lower() for player in match['participants']}
+            if inters_in_game := players & inters:
+                general = bot.get_channel(data.id_dict['general'])
+                await general.send(f"{member.mention} {'THESE INTERS ARE' if len(inters_in_game) > 1 else 'THIS INTER IS'} IN YOUR GAME RIGHT NOW: {', '.join(i for i in inters_in_game)}")
+
+    with open('intlist.txt', 'r', encoding='UTF-8') as intlist:
+        inters: set = {re.search(r'^- \[(.*)\]\(<https', inter).group(1).replace(' ', '').lower() for inter in intlist.readlines()}
+    try:
+        await asyncio.gather(*map(functools.partial(get_async_inters, inters=inters), data.discord_id_list))
+    except:
+        pass
+
 @tasks.loop(hours=24)
 async def daily_notification():
     general = bot.get_channel(data.id_dict['general'])
-    # await general.send("Do your daily vote: https://www.webnovel.com/book/civilization_21272045006019305#:~:text=Weekly%20Power%20Status")
+    await general.send("Do your daily vote: https://www.webnovel.com/book/civilization_21272045006019305#:~:text=Weekly%20Power%20Status")
     server = bot.get_guild(data.id_dict['server'])
     ms = await server.fetch_member(data.id_dict['MS'])
-    #await general.send(f"{ms.mention} medal.tv api response code: {helper.get_recent_clips(36030813,30)}")
+    await general.send(f"{ms.mention} medal.tv api response code: {helper.get_recent_clips(36030813,30)}")
 
 @tasks.loop(time=[datetime.time(i,random.randint(0,59)) for i in range (24)])
 async def jordan_water():
@@ -50,17 +133,20 @@ async def jordan_water():
         await general.send(f"{jordan.mention} This is a reminder to drink water and stay hydrated!")
 
 bot.remove_command("help")
-@bot.command(aliases=['help'])
-async def show_commands(ctx: commands.Context):
-    await ctx.send("Available commands: "+data.cmd_list)
+@bot.command()
+async def help(ctx: commands.Context):
+    await ctx.send("Available commands: " + data.cmd_list)
 
 @bot.command()
-async def aram(ctx: commands.Context, spots: str=''):
+async def aram(ctx: commands.Context, spots: str='', game=None):
+    if spots.lower() == 'help':
+        await ctx.send("Usage: ms!aram [spots remaining] [game name]")
+        return
     role_mention_list = [f"<@&{role}>" for role in data.role_ids.values()]
     spots_str = ''
     if spots and spots.isnumeric():
         spots_str = f"{spots} spot{'s' if spots != '1' else ''} left!"
-    await ctx.send(f'ARAM? {spots_str} {" ".join(role_mention_list)}')
+    await ctx.send(f'{game if game else "ARAM"}? {spots_str} {" ".join(role_mention_list)}')
 
 @bot.command()
 async def arthur(ctx: commands.Context):
@@ -90,10 +176,6 @@ async def clean(ctx: commands.Context):
         await msg.delete()
     except discord.errors.NotFound:
         pass
-
-@bot.command()
-async def daddy(ctx: commands.Context):
-    await ctx.send("https://cdn.discordapp.com/attachments/660285290404904982/970615387341357056/unknown.png")
 
 @bot.command()
 async def darius(ctx: commands.Context):
@@ -139,39 +221,107 @@ async def grind(ctx: commands.Context):
 async def hydra(ctx: commands.Context):
     await ctx.send(art.hydra_art)
 
-@bot.command()
-async def inspire(ctx: commands.Context):
-    await ctx.send(helper.get_quote())
-
-@bot.command()
-async def addintlist(ctx: commands.Context, *, name: str):
-    if not name:
+@bot.command(aliases=['addil', 'addIL', 'addIl', 'addiL'])
+async def addintlist(ctx: commands.Context, *, name: str=None):
+    if not name or name.lower() == 'help':
         await ctx.send(f"Usage example: ms!addintlist iamrandom")
         return
     
-    with open('intlist.txt', 'a') as int_list:
-        int_list.write(f'- {name}: <https://www.op.gg/summoners/oce/{name.replace(" ", "%20")}>\n')
-    await ctx.send(f"{name} has been added to the MSBot int list!")
+    with open('intlist.txt', 'a', encoding='UTF-8') as int_list:
+        inter_str = f'- {name}: <https://www.op.gg/summoners/oce/{name.replace(" ", "%20")}>\n'
+        int_list.write(inter_str)
+    to_del = []
+    to_del.append(await ctx.send(f"{name} has been added to the MSBot int list!"))
+    to_del.append(await ctx.send(inter_str))
+    to_del.append(ctx.message)
+    await asyncio.sleep(60)
+    try:
+        await ctx.channel.delete_messages(to_del)
+    except discord.errors.NotFound:
+        pass
 
-@bot.command(aliases=['deleteintlist'])
-async def removeintlist(ctx: commands.Context, *, name: str):
-    if not name:
+@bot.command(aliases=['removeil', 'removeIL', 'removeIl', 'removeiL', 'deleteil', 'deleteIL', 'deleteIl', 'deleteiL'])
+async def removeintlist(ctx: commands.Context, *, name: str=None):
+    if not name or name.lower() == 'help':
         await ctx.send(f"Usage example: ms!removeintlist iamrandom")
         return
     
-    with open('intlist.txt', 'r') as f:
+    with open('intlist.txt', 'r', encoding='UTF-8') as f:
         int_list = f.readlines()
 
+    to_del = []
     if (new_int_list := [inter for inter in int_list if not re.search(rf"^- {name}:", inter, re.IGNORECASE)]) == int_list:
-        await ctx.send(f"{name} is not in the MSBot int list!")
+        to_del.append(await ctx.send(f"{name} is not in the MSBot int list!"))
     else:
-        with open('intlist.txt', 'w') as f:
+        with open('intlist.txt', 'w', encoding='UTF-8') as f:
             f.writelines(new_int_list)
-        await ctx.send(f"{name} has been removed from the MSBot int list!")
+        to_del.append(await ctx.send(f"{name} has been removed from the MSBot int list!"))
+    
+    to_del.append(ctx.message)
+    await asyncio.sleep(60)
+    try:
+        await ctx.channel.delete_messages(to_del)
+    except discord.errors.NotFound:
+        pass
 
-@bot.command()
+@bot.command(aliases=['noteil', 'noteIL', 'noteIl', 'noteiL'])
+async def noteintlist(ctx: commands.Context):
+    with open('intlist.txt', 'r', encoding='UTF-8') as intlist:
+        lines = intlist.readlines()
+    inters = {re.search(r'^- \[(.*)\]\(<https', line).group(1): index for index, line in enumerate(lines)}
+
+    select = Select(
+        placeholder='Choose an inter!',
+        options=[discord.SelectOption(label=inter, emoji=random.choice('🐄🧟🤖💩💀🥶🤬🤢🤡👺🙈🐷🐔🦍🐍🐧')) for inter in inters.keys()]
+    )
+    
+    selectMsg = None
+
+    to_del = []
+    
+    async def inter_select_callback(interaction):
+        inter = select.values[0]
+        line_index = inters[inter]
+        
+        response = await interaction.response.send_message(f'Please type the note to add for {inter}, or type \'clear\' to remove the note:')
+        
+        def check(m):
+            return m.author == ctx.author
+        
+        replyMsg = await bot.wait_for('message', check=check)
+        note = replyMsg.content
+        
+        if note == 'clear':
+            note = None
+        
+        lines[line_index] = lines[line_index].split(' | ')[0].strip() + f" | {note}" * (not not note) + '\n'
+        with open('intlist.txt', 'w', encoding='UTF-8') as intlist:
+            intlist.writelines(lines)
+        updatedMsg = await ctx.send(f"Int list note updated for {inter}!")
+        
+        to_del.append(response)
+        to_del.append(replyMsg)
+        to_del.append(updatedMsg)
+        await asyncio.sleep(10)
+        await ctx.channel.delete_messages(to_del)
+    
+    select.callback = inter_select_callback
+    
+    view = View()
+    view.add_item(select)
+    selectMsg = await ctx.send("Choose an inter from below:", view=view)
+    to_del.append(ctx.message)
+    to_del.append(selectMsg)
+
+@bot.command(aliases=['il', 'IL', 'Il', 'iL'])
 async def intlist(ctx: commands.Context):
-    await ctx.send("These dickheads are on the MSBot int list:\n" + pathlib.Path('intlist.txt').read_text().strip())
+    msg = await ctx.reply("These dickheads are on the MSBot int list:\n" + pathlib.Path('intlist.txt').read_text(encoding='UTF-8').strip())
+    await asyncio.sleep(60)
+    try:
+        await ctx.message.delete()
+        await msg.delete()
+    except discord.errors.NotFound:
+        pass
 
 @bot.command(aliases=[f"J{'O'*i}RDAN" for i in range(2,101)])
 async def JORDAN(ctx: commands.Context):
@@ -225,10 +375,6 @@ async def medal(ctx: commands.Context, member: discord.Member=None, days=7):
     await ctx.send(f"{sleeper_emoji} {member.mention} has no clips {sleeper_emoji}")
 
 @bot.command()
-async def millionaire(ctx: commands.Context):
-    await ctx.send("soon:tm:")
-
-@bot.command()
 async def multi(ctx: commands.Context):
     msgs = []
     for multi_pic in os.listdir('./multis'):
@@ -277,10 +423,11 @@ async def of(ctx: commands.Context):
 @commands.cooldown(1, 15, commands.BucketType.guild)
 @bot.command()
 async def oi(ctx: commands.Context, member: discord.Member=None):
-    if member is None:
+    if isinstance(member) != discord.Member:
         await ctx.send("Tag someone to piss them off <:karlnoodle:392209143190126593>")
         return
     if member.voice is None:
+        await ctx.send(f"OI {member.mention}")
         return
     initial_ch = member.voice.channel
     vcs = ctx.message.guild.voice_channels
@@ -309,18 +456,17 @@ async def oi_error(ctx: commands.Context, error: commands.CommandError):
 @bot.command()
 async def ooo(ctx: commands.Context):
     start_str = "JOOOOO"
-    general = bot.get_channel(data.id_dict['general'])
-    msg = await general.send(start_str)
+    msg = await ctx.send(start_str)
     for _ in range(10):
+        await asyncio.sleep(1.5)
         start_str += "OOOOOO"
         await msg.edit(content=start_str)
-        await asyncio.sleep(1.5)
     await msg.edit(content=start_str+"RDAN")
 
 @bot.command()
 async def opgg(ctx: commands.Context, name: str='', region: str="oce"):
     if not name:
-        await ctx.send("put someones league name")
+        await ctx.send("Usage example: ms!opgg iamrandom [na/euw/kr etc., default oce]")
     else:
         await ctx.send(f"https://oce.op.gg/summoners/{region}/{name}")
 
@@ -339,7 +485,7 @@ async def reset_nicknames(ctx: commands.Context):
     await msg.add_reaction("❌")
 
     def check(reaction, user):
-        return str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌'
+        return user == ctx.author and str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌'
 
     try:
         reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
@@ -357,33 +503,32 @@ async def reset_nicknames(ctx: commands.Context):
             for member in ctx.guild.members:
                 for role in member.roles:
                     if role.name in ('Secretary', 'Vice Principal'):
-                        await member.edit(nick=None)
+                        if member.nick is not None:
+                            await member.edit(nick=None)
     await ctx.send("All nicknames reset!")
 
 @commands.cooldown(1, 30, commands.BucketType.guild)
 @bot.command()
 async def shuffle(ctx: commands.Context):
-    start = time.time()
-    server = ctx.guild
-    sec_vp_members: list[discord.Member] = []
-    nicks: list[str] = []
-    
-    for member in server.members:
-        for role in member.roles:
-            if role.name in ('Secretary', 'Vice Principal'):
-                nicks.append(member.nick)
-                sec_vp_members.append(member)
+    start = time.time()    
+    sec_vp_members = list(
+        set(
+            itertools.chain.from_iterable([role.members for role in ctx.guild.roles if re.search(r'^Secretary$|^Vice Principal$', role.name)])
+        )
+    )
+    nicks: list[str] = [member.nick for member in sec_vp_members]
     random.shuffle(nicks)
     for member, nick in zip(sec_vp_members, nicks):
-        await member.edit(nick=nick)
-    end = time.time()
-    total = end - start
-    msg = await ctx.send(f'Shuffled in {total:.2f}s!')
-    await asyncio.sleep(5)
+        if member.nick != nick:
+            await member.edit(nick=nick)
+
+    msg = await ctx.send(f'Shuffled in {time.time()-start:.2f}s!')
+    
     try:
         await ctx.message.delete()
     except discord.errors.NotFound:
         pass
+    await asyncio.sleep(10)
     try:
         await msg.delete()
     except discord.errors.NotFound:
@@ -410,7 +555,7 @@ async def sro(ctx: commands.Context):
 @bot.command()
 async def timer(ctx: commands.Context, duration: str=''):
     if not duration:
-        await ctx.send("How long? minutes:seconds or seconds")
+        await ctx.send("Usage: ms!timer minutes:seconds OR seconds")
         return
     duration_dict = helper.process_time(duration)
     if duration_dict is None or duration_dict['total'] == 0:
@@ -427,11 +572,19 @@ async def yt(ctx: commands.Context):
     await ctx.send("https://www.youtube.com/channel/UCEcv1n1cuUC4jdcrdy71S5Q")
 
 @bot.event
+
 async def on_message(msg: discord.Message):
     if msg.author == bot.user:
         return
     if msg.content.lower().startswith("ms!"):
-        await bot.process_commands(msg)
+        cmd_names = []
+        for cmd in bot.commands:
+            cmd_names.append(cmd.name)
+            cmd_names.extend(cmd.aliases)
+        if msg.content[3:].split(' ')[0] not in cmd_names:
+            await msg.channel.send(f"'{msg.content.split(' ')[0]}' is not a valid command!\nAvailable commands: " + data.cmd_list)
+        else:
+            await bot.process_commands(msg)
         return
     if msg.author.id == data.id_dict['gomu']:
         await msg.add_reaction("<:chonkstone:811979419571847239>")
@@ -463,7 +616,7 @@ async def on_message(msg: discord.Message):
 
 @bot.event
 async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
-    name: str = member.nick if member.nick is not None else member.name
+    name: str = member.display_name
     msg = None
     general = bot.get_channel(data.id_dict['general'])
     if before.channel is None:
@@ -474,7 +627,6 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
             msg = await general.send(f"DID YOU SAY BYE {member.mention}?")
         else:
             msg = await general.send(f"{name} Where are you going?")
-        #TODO ms!lastseen, shows when they were last in voice chat
         helper.append_voice_log(name, 'left')
     if msg is not None:
         await asyncio.sleep(30)
@@ -494,7 +646,7 @@ async def on_typing(channel: discord.TextChannel, _user: discord.Member, _when: 
             pass
 
 @bot.event
-async def on_presence_update(before: discord.VoiceState, after: discord.VoiceState):
+async def on_presence_update(before: discord.Member, after: discord.Member):
     if before.status != discord.Status.offline:
         return
     if any(twins := [after.id == data.id_dict['jordan'], after.id == data.id_dict['colden']]):

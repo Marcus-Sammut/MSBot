@@ -12,7 +12,7 @@ def append_voice_log(name: str, status: Literal["joined", "left"]):
     curr_time = time.strftime("%I:%M%p", time.localtime()).lower()
     if curr_time[0] == '0':
         curr_time = curr_time[1:]
-    with open('voice_log.txt', 'r+') as log_file:
+    with open('voice_log.txt', 'r+', encoding='UTF-8') as log_file:
         logs = log_file.readlines()
         if len(logs) > 20:
             logs.pop(0)
@@ -24,11 +24,6 @@ def append_voice_log(name: str, status: Literal["joined", "left"]):
 def get_aa_quote() -> str:
     quote = random.choice(data.arthur_quotes)
     return "\"" + quote + "\"" + " - Arthur Ang"
-
-def get_quote() -> str:
-    response = requests.get("https://zenquotes.io/api/random")
-    json_data = json.loads(response.text)
-    return json_data[0]['q'] + " - " + json_data[0]['a']
 
 def get_game_name(category_id: int) -> str:
     """get id from category dict"""
@@ -56,6 +51,12 @@ def get_recent_clips(medal_id: int, days: int) -> list:
         if post_time < (86400 * days):
             recent_clips.append(clip)
     return recent_clips
+
+def is_riot_key_valid(key: str):
+    if not requests.get(f"https://oc1.api.riotgames.com/lol/platform/v3/champion-rotations?api_key={key}").ok:
+        print("api key expired: https://developer.riotgames.com/")
+        return False
+    return True
 
 def process_time(input_duration: str) -> dict | None:
     timer = {
