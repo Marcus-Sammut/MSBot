@@ -4,6 +4,8 @@ import random
 import re
 import json
 import requests
+import socket
+import struct
 import data
 
 from typing import Literal
@@ -21,28 +23,65 @@ def append_voice_log(name: str, status: Literal["joined", "left"]):
         log_file.truncate()
         log_file.writelines(logs)
 
-def get_aa_quote() -> str:
-    quote = random.choice(data.arthur_quotes)
-    return "\"" + quote + "\"" + " - Arthur Ang"
-
 def get_game_name(category_id: int) -> str:
     """get id from category dict"""
-    with open('medal_categories.txt', 'r', encoding='utf8') as cats:
-        category_dict = json.loads(cats.read())
+    with open('medal_categories.txt', 'r', encoding='utf8') as categories:
+        category_dict = json.loads(categories.read())
     for category in category_dict:
         if category['id'] == category_id:
             return f"({category['name']})"
     return ''
 
+def get_players_on_server(ip: str, port: int) -> set[str|None]:
+    # https://gist.github.com/Lonami/b09fc1abb471fd0b8b5483d54f737ea0
+    def read_var_int():
+        i = 0
+        j = 0
+        while True:
+            k = sock.recv(1)
+            if not k:
+                return 0
+            k = k[0]
+            
+            i |= (k & 0x7f) << (j * 7)
+            j += 1
+            if j > 5:
+                raise ValueError('var_int too big')
+            if not (k & 0x80):
+                return i
+
+    sock = socket.socket()
+    sock.connect((ip, port))
+    try:
+        host: bytes = ip.encode('utf-8')
+        data = b'\x00\x04' + struct.pack('>b', len(host)) + host + struct.pack('>H', port) + b'\x01'
+        data = struct.pack('>b', len(data)) + data
+        sock.sendall(data + b'\x01\x00')
+        length = read_var_int()
+        if length < 10:
+            if length < 0:
+                raise ValueError('negative length read')
+            else:
+                raise ValueError(f'invalid response {sock.read(length)}')
+
+        sock.recv(1)
+        length = read_var_int()
+        data = b''
+        while len(data) != length:
+            chunk = sock.recv(length - len(data))
+            if not chunk:
+                raise ValueError('connection abborted')
+            data += chunk
+        if players := json.loads(data)['players'].get('sample'):
+            return {player['name'] for player in players}
+        return set()
+
+    finally:
+        sock.close()
+
 def get_recent_clips(medal_id: int, days: int) -> list:
     header = {"Authorization":"pub_v3592mlcXKL8IBhQqnaMzhAsDF7Vky9f"}
-    response = requests.get( \
-        f"https://developers.medal.tv/v1/latest?userId={medal_id}&limit=100", headers=header \
-    )
-    print(response)
-    # TEMP: remove when code is 200
-    return response.status_code
-
+    response = requests.get(f"https://developers.medal.tv/v1/latest?userId={medal_id}&limit=100", headers=header)
     json_data = json.loads(response.text)
     recent_clips = []
     for clip in json_data['contentObjects']:
@@ -50,7 +89,7 @@ def get_recent_clips(medal_id: int, days: int) -> list:
         post_time = now - int(str(clip['createdTimestamp'])[:-3])
         if post_time < (86400 * days):
             recent_clips.append(clip)
-    return recent_clips
+    return sorted(recent_clips, key=lambda x: x['createdTimestamp'], reverse=True)
 
 def is_riot_key_valid(key: str):
     if not requests.get(f"https://oc1.api.riotgames.com/lol/platform/v3/champion-rotations?api_key={key}").ok:

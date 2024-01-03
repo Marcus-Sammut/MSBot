@@ -1,7 +1,7 @@
 arthur_quotes = ["raw dog", "hamdulillah", "whats the play", "snap off", "so sick", "cheesily so soft", "why you repping", "so cooked", "packing heat", "flop it out", "so solid", "force", "so raw", "sus it out", "thoughts?", "you like that cleanse?", "kickback"]
 cmd_list = """```
 Troll: 5stars arthur boom darius dinner dopa gomu J(O*1..100)RDAN knock ladbrokes multi of ooo razza shuffle snoopy sro
-Utility: aram clean clips dice github grind log medal oi opgg patchnotes resetnames timer
+Utility: aram clear clips dice github grind log medal oi opgg patchnotes resetnames timer
 Intlist: intlist(or IL) addintlist(or addIL) removeintlist(or removeIL) noteintlist(or noteIL)
 Socials: github yt
 ```"""
@@ -20,14 +20,15 @@ typing_pic_links = [
 ]
 
 id_dict = {
-    'server':  391945575886618626,
-    'general': 660285290404904982,
-    'jeremy':  391939457173159936,
-    'MS':      240650380227248128,
-    'gomu':    423369088681902080,
-    'danny':   489784969800187904,
-    'jordan':  242485947902459904,
-    'colden':  375168142781186049,
+    'server':   391945575886618626,
+    'general':  660285290404904982,
+    'medieval': 1190640427230048317,
+    'jeremy':   391939457173159936,
+    'MS':       240650380227248128,
+    'gomu':     423369088681902080,
+    'danny':    489784969800187904,
+    'jordan':   242485947902459904,
+    'colden':   375168142781186049,
 }
 
 bot_ids = {
