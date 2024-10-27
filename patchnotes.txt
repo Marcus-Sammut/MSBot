@@ -1,4 +1,10 @@
 MS Bot Patch Notes
+27/10/24:
+DID HE SAY BYE?: If jordan did NOT say bye when he left the call, you can now use the ms!jordanbye command to keep track of hom many times he has not said bye when leaving the call!
+
+12/08/24:
+MYTHICAL: MS Bot now tracks the last time someone hit a mythical typing pull
+
 13/07/23:
 Thisisaremindertodrinkwaterandstayhydrated!: patched to not spam jordan after MSBot device has been asleep
 

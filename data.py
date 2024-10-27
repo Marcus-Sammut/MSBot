@@ -1,34 +1,40 @@
-arthur_quotes = ["raw dog", "hamdulillah", "whats the play", "snap off", "so sick", "cheesily so soft", "why you repping", "so cooked", "packing heat", "flop it out", "so solid", "force", "so raw", "sus it out", "thoughts?", "you like that cleanse?", "kickback"]
+arthur_quotes = [
+    "raw dog",
+    "hamdulillah",
+    "whats the play",
+    "snap off",
+    "so sick",
+    "cheesily so soft",
+    "why you repping",
+    "so cooked",
+    "packing heat",
+    "flop it out",
+    "so solid",
+    "force",
+    "so raw",
+    "sus it out",
+    "thoughts?",
+    "you like that cleanse?",
+    "kickback",
+]
+
 cmd_list = """```
-Troll: 5stars arthur boom darius dinner dopa gomu J(O*1..100)RDAN knock ladbrokes multi of ooo razza shuffle snoopy sro
-Utility: aram clear clips dice github grind log medal oi opgg patchnotes resetnames timer
+Troll: 5stars arthur bomba boom dinner dopa gomu J(O*1..100)RDAN knock ladbrokes of ooo razza shuffle snoopy sro
+Utility: aram clear clips github grind jordanbye kill log medal oi opgg patchnotes resetnames timer
 Intlist: intlist(or IL) addintlist(or addIL) removeintlist(or removeIL) noteintlist(or noteIL)
 Socials: github yt
 ```"""
-# typing_pic_links = [
-#     "https://cdn.discordapp.com/attachments/660285290404904982/976473374178029568/unknown.png",
-#     "https://cdn.discordapp.com/attachments/660285290404904982/999325411534192640/segan-removebg-preview_2.png",
-#     "https://cdn.discordapp.com/attachments/699292316267184248/1003605106354298901/kingstoned-removebg-preview.png"
-# ]
-
-typing_pic_links = [
-    "https://lh3.googleusercontent.com/drive-viewer/AJc5JmRWUWPD4XE2WdNIYiIOZk4xmoY5f7VfJWzKmqKNevmR2y_dbdTGp3A89mP5WdQJlf4IIIVcfjw=w1920-h880",
-    "https://lh3.googleusercontent.com/drive-viewer/AJc5JmTu0qERPtgHKeP0oy7i3iuuSeddtpPvg2ogLD47kgO9PZP-ZeusTYZ-nURI2CF5IK8Tdx8Avtg=w1920-h880",
-    "https://lh3.googleusercontent.com/drive-viewer/AJc5JmRLlDfVt-1sVO60Qc-T1QNZbutzA8YxVQebXZ6hGH6aP2F8CD3lSlPP7CLaBfxMqX5yvvPJ_vo=w1920-h880",
-    "https://lh3.googleusercontent.com/drive-viewer/AJc5JmS5Jh7ynuKRhjlCMiGHVR7-rC2jixoGDPrSD_LMzyVsR7X5HiifwlHWWRjNqrZAz3Y-Mc7fM-Q=w1920-h937",
-    "https://lh3.googleusercontent.com/drive-viewer/AJc5JmSIuIZckCSSezFK-1YkCEEgmeMV_0I8Jvi6Px2OAKiTu3xXL1wscOwnRH7lXUGCnltRl3noq_4=w1920-h937"
-]
 
 id_dict = {
     'server':   391945575886618626,
     'general':  660285290404904982,
-    'medieval': 1190640427230048317,
     'jeremy':   391939457173159936,
     'MS':       240650380227248128,
     'gomu':     423369088681902080,
     'danny':    489784969800187904,
     'jordan':   242485947902459904,
     'colden':   375168142781186049,
+    'shihao':   352772471910301716,
 }
 
 bot_ids = {
@@ -36,11 +42,11 @@ bot_ids = {
     'Chip':         614109280508968980, # Chip bot
     'DankMemer':    270904126974590976, 
     'DuncteBot':    210363111729790977, # Dunctebot
+    'green-bot':    783708073390112830,
     'Lindsey':      119482224713269248,
     'ProBot':       282859044593598464,
+    'Rythm':        235088799074484224,
     'Vibr':         882491278581977179, # Vibr music bot
-    'ValorantLabs': 702201518329430117,
-    'ValorantShop': 980918916211695717, # Valorant shop
 }
 
 role_ids = {
@@ -104,7 +110,7 @@ medal_user_list = [
 
 carlo_chimps_league_names: set = {
     '2kmpoo','2hrpoo','2kgpoo','devel','acekingsuited',
-    'suzukii','for3','hellbreak','pineapplepie','cookiesandcake',
+    'for3','hellbreak','pineapplepie','cookiesandcake',
     'yaoimanga', 'dewick', 'fangs', '2hrpool', 'goodluckkarl',
     'nika', 'plueblue', 'suzuki', 'suzukii','bikrel', 'hideakisenpai',
     'chuckarice21', 'coach avalon'

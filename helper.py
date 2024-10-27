@@ -11,21 +11,20 @@ import data
 from typing import Literal
 
 def append_voice_log(name: str, status: Literal["joined", "left"]):
-    curr_time = time.strftime("%I:%M%p", time.localtime()).lower()
-    if curr_time[0] == '0':
-        curr_time = curr_time[1:]
+
+    curr_time = time.strftime("%A %-d/%-m at %-I:%M%p", time.localtime()).lower().capitalize()
     with open('voice_log.txt', 'r+', encoding='UTF-8') as log_file:
         logs = log_file.readlines()
         if len(logs) > 20:
             logs.pop(0)
-        logs.append(f"{name} {status} at {curr_time}\n")
+        logs.append(f"{name} {status} on {curr_time}\n")
         log_file.seek(0)
         log_file.truncate()
         log_file.writelines(logs)
 
-def get_game_name(category_id: int) -> str:
+def get_game_name(category_id: str) -> str:
     """get id from category dict"""
-    with open('medal_categories.txt', 'r', encoding='utf8') as categories:
+    with open('new_medal_categories.json', 'r', encoding='utf8') as categories:
         category_dict = json.loads(categories.read())
     for category in category_dict:
         if category['id'] == category_id:
@@ -79,9 +78,12 @@ def get_players_on_server(ip: str, port: int) -> set[str|None]:
     finally:
         sock.close()
 
-def get_recent_clips(medal_id: int, days: int) -> list:
-    header = {"Authorization":"pub_v3592mlcXKL8IBhQqnaMzhAsDF7Vky9f"}
-    response = requests.get(f"https://developers.medal.tv/v1/latest?userId={medal_id}&limit=100", headers=header)
+def get_recent_clips(medal_id: int, days: int) -> list|None:
+    header = {"Authorization":"pub_RYBZ8RqPTsYhd9NHK8xPSiyVM5sok5JW"}
+    response = requests.get(f"https://developers.medal.tv/v1/latest?userId={medal_id}&limit=50", headers=header)
+    if not response.ok:
+        print(response)
+        return None
     json_data = json.loads(response.text)
     recent_clips = []
     for clip in json_data['contentObjects']:
@@ -122,3 +124,14 @@ def send_timer_msg(timer: dict) -> str:
     if mins > 0 and secs == 0:
         return f"{base_msg} {mins} minute{'s' if mins > 1 else ''}!"
     return f"{base_msg} {secs} second{'s' if secs > 1 else ''}!"
+
+def update_mythical_log():
+    with open('missed_mythicals.txt', 'r+', encoding='UTF-8') as f:
+        attempts, timestamp, user_mention = f.read().split()
+        f.seek(0)
+        f.write(f"{int(attempts)+1} {timestamp} {user_mention}")
+        f.truncate()
+
+def reset_mythical_log(user_mention):
+    with open('missed_mythicals.txt', 'w', encoding='UTF-8') as f:
+        f.write(f"0 {int(time.time())} {user_mention}")

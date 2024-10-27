@@ -9,6 +9,9 @@ import re
 import sys
 import time
 
+from typing import Optional
+
+import PIL.Image
 import requests
 import httpx
 import humanize
@@ -31,7 +34,6 @@ RIOT_API_KEY = sys.argv[2]
 @bot.event
 async def on_ready():
     await bot.fetch_channel(data.id_dict['general'])
-    await bot.fetch_channel(data.id_dict['medieval'])
     await bot.fetch_guild(data.id_dict['server'])
     await bot.fetch_user(240650380227248128)
     # ping free champ rotation to check if api key is working, invalid key would return 403
@@ -48,8 +50,6 @@ async def on_ready():
                 await asyncio.gather(*map(get_encrypted_riot_ids, no_ids))
             except:
                 pass
-    if not check_who_is_online_minecraft.is_running():
-        check_who_is_online_minecraft.start()
     # if not daily_notification.is_running():
     #     daily_notification.start()
     if not validate_riot_key_task.is_running() and riot_key_is_valid:
@@ -61,19 +61,6 @@ async def on_ready():
     if not jordan_water.is_running():
         jordan_water.start()
     print(f'======================\n{bot.user} is online!\n======================')
-
-PREV_ONLINE_PLAYERS = set()
-@tasks.loop(seconds=15)
-async def check_who_is_online_minecraft():
-    if (online_players := helper.get_players_on_server('51.161.198.152', 2082)) == PREV_ONLINE_PLAYERS:
-        return
-    
-    if just_joined := [p for p in online_players if p not in PREV_ONLINE_PLAYERS]:
-        medieval = bot.get_channel(data.id_dict['medieval'])
-        if len(just_joined) == 1:
-            await medieval.send(f"{just_joined[0]} just joined the server!")
-        else:
-            await medieval.send(f"These players just joined the server: {', '.join(sorted(just_joined))}")
 
 @tasks.loop(seconds=30)
 async def validate_riot_key_task():
@@ -153,11 +140,11 @@ async def help(ctx: commands.Context):
     await ctx.send("Available commands: " + data.cmd_list)
 
 @bot.command()
-async def aram(ctx: commands.Context, spots: str='', *, game: str=None):
+async def aram(ctx: commands.Context, spots: str='', *, game: str|None=None):
     if spots.lower() == 'help':
         await ctx.send("Usage: ms!aram [spots remaining] [game name]")
         return
- 
+    await ctx.message.delete()
     role_mention_list = [f"<@&{role}>" for role in data.role_ids.values()]
     spots_str = ''
     if spots and spots.isnumeric():
@@ -169,41 +156,58 @@ async def arthur(ctx: commands.Context):
     await ctx.send(f'"{random.choice(data.arthur_quotes)}" - Arthur Ang')
 
 @bot.command()
-async def boom(ctx: commands.Context):
+async def bomba(ctx: commands.Context):
     await ctx.send("https://discord.com/channels/391945575886618626/660285290404904982/979716023613792286")
+
+BOOM_GROUP_SIZE_LIST = []
+@bot.command(aliases=['40'])
+async def boom(ctx: commands.Context, group_size: Optional[int]=None):
+    # ms!boom 4 = when your group gets to 4 from its original, send the message and tag each person currently in the channel :)
+    if ctx.message.author.voice is None:
+        await ctx.send("Please join a voice channel first")
+        return
+    if not isinstance(group_size, int):
+        await ctx.send("Please enter a number for your desired group size")
+        return
+    curr_ch = ctx.message.author.voice.channel
+    global BOOM_GROUP_SIZE_LIST
+    group_sizes = {
+        'channel': curr_ch,
+        'initial_size': len(curr_ch.members),
+        'desired_size': group_size
+    }
+    BOOM_GROUP_SIZE_LIST.append(group_sizes)
+    await ctx.send(f"Now that you've started off as a group of {group_sizes['initial_size']}, please wait to reach your incredible milestone.")
 
 @bot.command(aliases=['clean'])
 async def clear(ctx: commands.Context):
-    clearing_msg = await ctx.send("Cleared 0 bot messages...")
+    cleared_counter_msg = await ctx.send("Cleared 0 bot messages...")
     counter = 0
-    msgs_to_delete = []
+    bulk_msgs_to_delete = []
+    old_msgs_to_delete = [] # older than 14 days cannot be bulk deleted
     not_deleted = True
     while not_deleted:
         not_deleted = False
         async for msg in ctx.channel.history(limit=100):
-            if msg.id == clearing_msg.id:
+            if msg.id == cleared_counter_msg.id:
                 continue
-            if (msg.content.lower().startswith(("ms!","db!","-p")) or msg.author.id in list(data.bot_ids.values())):
+            if msg.content.lower().startswith(("ms!","db!","-p")) or msg.author.id in list(data.bot_ids.values()):
                 not_deleted = True
                 counter += 1
-                msgs_to_delete.append(msg)
-        if not not_deleted:
-            msgs_to_delete.append(clearing_msg)
+                if datetime.datetime.now().timestamp() - msg.created_at.timestamp() > 60 * 60 * 24 * 13.95: # ~13 days 23 hours in seconds
+                    old_msgs_to_delete.append(msg)
+                else:
+                    bulk_msgs_to_delete.append(msg)
         if not_deleted:
-            clearing_msg = await clearing_msg.edit(content=f"Cleared {counter} bot messages...")
-        await ctx.channel.delete_messages(msgs_to_delete)
-        msgs_to_delete.clear()
-    await ctx.send(f"{counter} messages cleared!", delete_after=20)
-
-@bot.command()
-async def darius(ctx: commands.Context):
-    await ctx.send("He's got more mobility than Darius, a juggernaut centric on healing in his radius.\n\
-    \rI don't mind that his Q heals a ton, but gore drinker should not get the amp. He isn't a juggernaut, he is a bruiser.")
-
-@bot.command()
-async def dice(ctx: commands.Context, start: int=1, end: int=6):
-    if start is int and end is int:
-        await ctx.send(random.choice(range(start, end + 1)))
+            cleared_counter_msg = await cleared_counter_msg.edit(content=f"Clearing {counter} bot messages...")
+        await ctx.channel.delete_messages(bulk_msgs_to_delete)
+        for msg in old_msgs_to_delete:
+            try:
+                await msg.delete()
+            except discord.errors.NotFound:
+                pass
+        bulk_msgs_to_delete.clear()
+    await cleared_counter_msg.edit(content=f"{counter} message{'s' if counter > 1 else ''} cleared!", delete_after=20)
 
 @bot.command()
 async def dinner(ctx: commands.Context):
@@ -226,8 +230,10 @@ async def gomu(ctx: commands.Context):
     server = bot.get_guild(data.id_dict['server'])
     kingston = await server.fetch_member(data.id_dict['gomu'])
     if kingston.voice is None:
-        msg = await ctx.send(f"Hey {kingston.mention}, how are you doing?")
-        await msg.add_reaction("<:chonkstone:811979419571847239>")
+        await ctx.send(f"As of 28/05/2024 (HBD DW), Jeremy \"2 hr poo\" Lee has claimed the title of 'Best TFT player in this server' {kingston.mention}", file=discord.File(f'./nikanoob.jpg'))
+        # await ctx.send()
+        
+        # await msg.add_reaction("<:chonkstone:811979419571847239>")
     else:
         await kingston.move_to(None)
 
@@ -240,7 +246,7 @@ async def hydra(ctx: commands.Context):
     await ctx.send(art.hydra_art)
 
 @bot.command(aliases=['addil', 'addIL', 'addIl', 'addiL'])
-async def addintlist(ctx: commands.Context, *, name: str=None):
+async def addintlist(ctx: commands.Context, *, name: Optional[str]=None):
     if not name or name.lower() == 'help':
         await ctx.send("Usage example: ms!addintlist iamrandom")
         return
@@ -260,7 +266,7 @@ async def addintlist(ctx: commands.Context, *, name: str=None):
         pass
 
 @bot.command(aliases=['removeil', 'removeIL', 'removeIl', 'removeiL', 'deleteil', 'deleteIL', 'deleteIl', 'deleteiL'])
-async def removeintlist(ctx: commands.Context, *, name: str=None):
+async def removeintlist(ctx: commands.Context, *, name: Optional[str]=None):
     if not name or name.lower() == 'help':
         await ctx.send("Usage example: ms!removeintlist iamrandom")
         return
@@ -354,6 +360,14 @@ async def JORDAN(ctx: commands.Context):
     await msg.add_reaction("🇯🇴")
 
 @bot.command()
+async def kill(ctx: commands.Context):
+    await ctx.message.delete()
+    vcs: list[discord.VoiceChannel] = ctx.message.guild.voice_channels.copy()
+    for vc in vcs:
+        for member in vc.members:
+            await member.move_to(None)
+
+@bot.command()
 async def knock(ctx: commands.Context):
     await ctx.send("https://media.discordapp.net/attachments/660285290404904982/980466548911251526/ezgif-2-2e7fb41497.gif")
 
@@ -371,27 +385,31 @@ async def log(ctx: commands.Context):
         pass
 
 @bot.command()
-async def medal(ctx: commands.Context, member: discord.Member=None, days=7):
-    if member is None:
+async def medal(ctx: commands.Context, member:Optional[discord.Member]=None, days=30):
+    if not isinstance(member, discord.Member):
+        await ctx.send("Tag someone to piss them off <:karlnoodle:392209143190126593>")
+        return
+    if not isinstance(member, discord.Member):
         await ctx.send("Tag someone to see their recent clips <:creamonbloke:738031587299426304>")
         return
     if not isinstance(days, int):
-        await ctx.send("Please put a number")
-        return
+        days = 7
     if days < 1:
         await ctx.send("Must be at least 1 day")
         return
     sleeper_emoji = "<:ResidentChriser:944865466424393738>"
     for user in data.medal_user_list:
         if user['d_id'] == member.id:
-            clips = helper.get_recent_clips(user['m_id'], days)
+            if (clips := helper.get_recent_clips(user['m_id'], days)) is None:
+                await ctx.send("Medal API is dead :(")
+                return
             embed = discord.Embed(
                 title = f"{len(clips)} Clips from {member.display_name} in the last {days} days:",
                 colour = discord.Colour.orange()
             )
             for clip in clips:
                 embed_str = f"{clip['contentTitle']}"
-                if game_name := helper.get_game_name(int(clip['categoryId'])):
+                if game_name := helper.get_game_name(clip['categoryId']):
                     embed_str += f" {game_name}"
                 readable_timestamp = humanize.naturaltime(datetime.datetime.fromtimestamp(clip['createdTimestamp']/1000))
                 embed_str += f" - {readable_timestamp}"
@@ -403,17 +421,24 @@ async def medal(ctx: commands.Context, member: discord.Member=None, days=7):
             return
     await ctx.send(f"{sleeper_emoji} {member.mention} has no clips {sleeper_emoji}", silent=True, allowed_mentions=discord.AllowedMentions.none())
 
+# @bot.command()
+# async def multi(ctx: commands.Context):
+#     msgs = []
+#     for multi_pic in os.listdir('./multis'):
+#         msgs.append(await ctx.send(file=discord.File(f'./multis/{multi_pic}')))
+#     try:
+#         await ctx.message.delete()
+#         await asyncio.sleep(90)
+#         await ctx.channel.delete_messages(msgs)
+#     except discord.errors.NotFound:
+#         pass
+
 @bot.command()
-async def multi(ctx: commands.Context):
-    msgs = []
-    for multi_pic in os.listdir('./multis'):
-        msgs.append(await ctx.send(file=discord.File(f'./multis/{multi_pic}')))
-    try:
-        await ctx.message.delete()
-        await asyncio.sleep(90)
-        await ctx.channel.delete_messages(msgs)
-    except discord.errors.NotFound:
-        pass
+async def mythical(ctx: commands.Context):
+    with open('missed_mythicals.txt', 'r', encoding='UTF-8') as f:
+        attempts, timestamp, user_mention = f.read().split()
+        formatted_date = datetime.datetime.strftime(datetime.datetime.fromtimestamp(int(timestamp)), "%-I:%M%p on %A %-d/%-m")
+        await ctx.send(f"There has been {attempts} attempt{'s' if attempts != 1 else ''} since the last mythical pull by {user_mention} at {formatted_date}")
 
 @bot.command(aliases=['clips'])
 async def recent_clips(ctx: commands.Context, days=7):
@@ -433,7 +458,8 @@ async def recent_clips(ctx: commands.Context, days=7):
         clip_count += len(recent_user_clips)
         for idx, clip in enumerate(recent_user_clips, start=0):
             clip_str = f"{clip['contentTitle']}"
-            if game_name := helper.get_game_name(int(clip['categoryId'])):
+            if game_name := helper.get_game_name(clip['categoryId']):
+                print("hello")
                 clip_str += f" {game_name}"
             readable_timestamp = humanize.naturaltime(datetime.datetime.fromtimestamp(clip['createdTimestamp']/1000))
             clip_str += f" - {readable_timestamp}"
@@ -456,9 +482,9 @@ async def recent_clips(ctx: commands.Context, days=7):
 async def of(ctx: commands.Context):
     await ctx.send("https://onlyfans.com/iamrandom")
 
-@commands.cooldown(1, 15, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 @bot.command()
-async def oi(ctx: commands.Context, member: discord.Member=None, moves=7):
+async def oi(ctx: commands.Context, member: Optional[discord.Member]=None, moves=7):
     if not isinstance(member, discord.Member):
         await ctx.send("Tag someone to piss them off <:karlnoodle:392209143190126593>")
         return
@@ -468,18 +494,27 @@ async def oi(ctx: commands.Context, member: discord.Member=None, moves=7):
         await ctx.send(f"OI {member.mention}")
         return
     initial_ch = member.voice.channel
-    vcs = ctx.message.guild.voice_channels
+    vcs: list = ctx.message.guild.voice_channels.copy()
     vcs.remove(initial_ch)
     vc_list = [vc for vc in vcs if vc.name != 'Mary Juan']
     prev = None
-    for _ in range(moves):
+    for i in range(moves+1):
         curr = random.choice(vc_list)
         while curr == prev:
             curr = random.choice(vc_list)
-        await member.move_to(curr)
-        await asyncio.sleep(0.5)
         prev = curr
-    await member.move_to(initial_ch)
+        for _ in range(3):
+            try:
+                if i == moves - 1:
+                    await member.move_to(initial_ch)
+                    return
+                else:
+                    await member.move_to(curr)
+                break
+            except:
+                await asyncio.sleep(0.1)
+                continue
+        await asyncio.sleep(0.5)
 
 @oi.error
 async def oi_error(ctx: commands.Context, error: commands.CommandError):
@@ -502,6 +537,10 @@ async def opgg(ctx: commands.Context, name: str='', region: str="oce"):
         await ctx.send("Usage example: ms!opgg iamrandom [na/euw/kr etc., default oce]")
     else:
         await ctx.send(f"https://oce.op.gg/summoners/{region}/{name}")
+
+@bot.command()
+async def ozbargain(ctx: commands.Context):
+    pass
 
 @bot.command()
 async def patchnotes(ctx: commands.Context):
@@ -548,7 +587,7 @@ async def shuffle(ctx: commands.Context):
             itertools.chain.from_iterable([role.members for role in ctx.guild.roles if re.search(r'^Secretary$|^Vice Principal$', role.name)])
         )
     )
-    nicks: list[str] = [member.nick for member in sec_vp_members]
+    nicks: list[str|None] = [member.nick for member in sec_vp_members]
     random.shuffle(nicks)
     for member, nick in zip(sec_vp_members, nicks):
         if member.nick != nick:
@@ -589,6 +628,20 @@ async def timer(ctx: commands.Context, duration: str=''):
     await asyncio.sleep(duration_dict['total'])
     jeremy: discord.User = await bot.fetch_user(data.id_dict['jeremy'])
     await ctx.send(f"{ctx.message.author.mention} {jeremy.mention} should be back from his shower now!")
+
+@bot.command()
+async def jordanbye(ctx: commands.Context):
+    with open('jordan_bye.txt', 'r', encoding='UTF-8') as f:
+        no_byes = int(f.read().strip())
+    async for msg in ctx.channel.history(limit=10):
+        if msg.author.id == bot.user.id and "DID YOU SAY BYE <@242485947902459904>" in msg.content:
+            await ctx.send(f"Jordan didn't say bye AGAIN? Jordan has now not said bye {no_byes+1} times!")
+            await msg.delete()
+            with open('jordan_bye.txt', 'w', encoding='UTF-8') as f:
+                f.write(f"{no_byes+1}")
+            return
+    await ctx.send(f"Jordan has not said bye {no_byes} times!")
+    
 
 @bot.command()
 async def worlds(ctx: commands.Context):
@@ -635,7 +688,10 @@ async def on_message(msg: discord.Message):
             if re.search("beast", word, re.IGNORECASE):
                 await msg.add_reaction("🦍")
             if re.search("boom", word, re.IGNORECASE):
-                await msg.add_reaction("💥")
+                if random.randint(1,5) == 1:
+                    await msg.add_reaction("🏸")
+                else:
+                    await msg.add_reaction("💥")                
             if re.search("holy", word, re.IGNORECASE):
                 await msg.add_reaction("⛪")
             if re.search("sick", word, re.IGNORECASE):
@@ -649,19 +705,57 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
         return
     general = bot.get_channel(data.id_dict['general'])
     if before.channel is None:
-        await general.send(f"Hi {member.mention}", silent=True, allowed_mentions=discord.AllowedMentions.none(), delete_after=30)
         helper.append_voice_log(member.mention, status='joined')
+        if member.id == data.id_dict['gomu']:
+            await general.send(file=discord.File(f'./squaregomumorph.gif'))
+        else:
+            await general.send(f"Hi {member.mention}", silent=True, allowed_mentions=discord.AllowedMentions.none(), delete_after=30)
+        global BOOM_GROUP_SIZE_LIST
+        remaining_groups = []
+        for group_sizes in BOOM_GROUP_SIZE_LIST:
+            if group_sizes['channel'] is after.channel and len(after.channel.members) == group_sizes['desired_size']:
+                mentions = [f"<@{member.id}>" for member in after.channel.members]
+                if random.randint(0, 1):
+                    await general.send(f"{' '.join(mentions)} Just wanted to say thank you to everyone for making this all possible! We started off as a group of {group_sizes['initial_size']}, \
+                        \rand for us to reach {group_sizes['desired_size']} is an incredible milestone. On behalf of the Boom Badminton Club Committee (BBCC), we would like to say a massive thanks 🫶")
+                else:
+                    await general.send(f"{' '.join(mentions)} Thanks for coming everyone! I know it's been said before, but we really appreciate each and everyone of you for making our vision come true. Growing from \
+                        \r{group_sizes['initial_size']} active members to now {group_sizes['desired_size']}, is a huge milestone for us as a community. Let's continue to grow and make Carlomen a great social discord!")
+                
+            else:
+                remaining_groups.append(group_sizes)
+        BOOM_GROUP_SIZE_LIST = remaining_groups
     elif after.channel is None:
-        if member.id == data.id_dict['jordan']:
-            await general.send(f"DID YOU SAY BYE {member.mention}?", silent=True, allowed_mentions=discord.AllowedMentions.none(), delete_after=30)
+        helper.append_voice_log(member.mention, status='left')
+        if member.id in (data.id_dict['jordan'], data.id_dict['shihao']):
+            await general.send(f"DID YOU SAY BYE {member.mention}? If Jordan didn't say bye, type the command 'ms!jordanbye'", silent=True, allowed_mentions=discord.AllowedMentions.none(), delete_after=300)
         else:
             await general.send(f"{member.mention} Where are you going?", silent=True, allowed_mentions=discord.AllowedMentions.none(), delete_after=30)
-        helper.append_voice_log(member.mention, status='left')
 
 @bot.event
-async def on_typing(channel: discord.TextChannel, _user: discord.Member, _when: datetime.datetime):
-    if channel.guild.id == data.id_dict['server']:
-        await channel.send(random.choice(data.typing_pic_links), delete_after=1.5)
+async def on_typing(channel: discord.TextChannel, member: discord.Member, _when: datetime.datetime):
+    if channel.guild.id != data.id_dict['server']:
+        return
+    typing_pics = os.listdir("typing")
+    if (typing_pic := random.choice(typing_pics)) != "zCHUBBY.webp":
+        helper.update_mythical_log()
+        await channel.send(file=discord.File(f'./typing/{typing_pic}'), delete_after=3.5)
+    elif random.randint(1, 13) != 1:
+        helper.update_mythical_log()
+        typing_pic = random.choice(typing_pics[0:-1]) # last pic is 'zCHUBBY.webp'
+        await channel.send(file=discord.File(f'./typing/{random.choice(typing_pics[0:-1])}'), delete_after=3.5)
+    else:
+        with open('missed_mythicals.txt', 'r', encoding='UTF-8') as f:
+            attempts = f.read().split()[0]
+        helper.reset_mythical_log(member.mention)
+        role_mention_list = [f"<@&{role}>" for role in data.role_ids.values()]
+        await channel.send(f"{' '.join(role_mention_list)} After {attempts} attempts, {member.mention} HAS HIT THE MYTHICAL TYPING PULL LETS FUCKING GOOOOOOOOOO 🔔🔔🔔🔔🔔🎉🎉🎉💯💯💯🔔🔔🔔🔔🔔")
+        await channel.send(file=discord.File(f'./typing/zCHUBBY.webp'))
+
+    if random.randint(1,300) == 1:
+        await channel.send("Also wanted to say a huge shoutout to our newcomers and original members. You guys have grown so much \
+            \rand it's really inspiring to see how Carlomen is creating a community of growth! Let's all learn how to play ARAM and one day learn how to play GoodRAM 🤣")
+
 
 @bot.event
 async def on_presence_update(before: discord.Member, after: discord.Member):
